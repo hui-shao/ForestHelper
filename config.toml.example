@@ -1,0 +1,12 @@
+# 用户设置
+# 请在下方填写您的账号凭据
+[user]
+username = ""  # 用户名, 通常是邮箱
+password = ""
+uid = 0  # 初次使用保持现状即可, 无需设置
+remember_token = ""  # 初次使用保持现状即可, 无需设置
+
+
+# 通过模拟观看广告免费删除植树记录
+[remove_plants_by_rewarded_ad]
+enable = true # 开关
