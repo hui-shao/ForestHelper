@@ -10,3 +10,7 @@ remember_token = ""  # 初次使用保持现状即可, 无需设置
 # 通过模拟观看广告免费删除植树记录
 [remove_plants_by_rewarded_ad]
 enable = true # 开关
+
+# 自动植树(刷金币)
+[auto_plant]
+enable = true

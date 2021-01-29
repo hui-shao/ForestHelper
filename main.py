@@ -4,9 +4,11 @@
 # %% imports
 import json
 import os
+import random
 import shutil
 import sys
 import time
+from datetime import datetime, timedelta
 from urllib import parse
 
 import requests
@@ -201,7 +203,7 @@ def get_coin_tree_types():
 
     def get_from_server():
         global coin_tree_types
-        url = f"https://c88fef96.forestapp.cc/api/v1/coin_tree_types?seekrua=android_cn-4.20.1&seekruid={uid}"
+        url = f"https://c88fef96.forestapp.cc/api/v1/products/coin_tree_types?seekrua=android_cn-4.20.1&seekruid={uid}"
         r = _requests("get", url)
         if r.status_code == 200:
             coin_tree_types = json.loads(r.text)
@@ -311,6 +313,58 @@ def remove_plants_by_rewarded_ad():
     run()
 
 
+# %% 自动植树刷金币
+def auto_plant():
+    plant_time = random.choice(list(range(30, 180, 5)))
+    tree_type = str(random.randint(1, 110))
+    note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
+    i = 1
+    while i <= 100:
+        plant_a_tree(plant_time, tree_type, note, i)
+        Avalon.info(f"将在 {plant_time} min后种植下一棵树")
+        time.sleep(plant_time * 60)
+        i += 1
+
+# %% 种植一棵树
+def plant_a_tree(_plant_time, _tree_type, _note, _number):
+    end_time = datetime.now().isoformat()
+    start_time = (datetime.now() - timedelta(hours=8)).isoformat()
+    data = {
+        "plant": {
+            "end_time": end_time,
+            "longitude": 0,
+            "note": _note,
+            "is_success": 1,
+            "room_id": 0,
+            "die_reason": '',
+            "tag": 0,
+            "latitude": 0,
+            "has_left": 0,
+            "start_time": start_time,
+            "trees": [{
+                "phase": 4,
+                "theme": 0,
+                "is_dead": 0,
+                "position": -1,
+                "tree_type": _tree_type
+            }]
+        },
+        "seekruid": uid
+    }
+    res = _requests("post", 'https://c88fef96.forestapp.cc/api/v1/plants', data, {})
+    try:
+        result = json.loads(res.text)
+        if result["is_success"]:
+            Avalon.info(f"第 {_number} 棵植树成功")
+            return True
+        else:
+            Avalon.error(f"第 {_number} 棵植树失败")
+            return False
+    except Exception:
+        Avalon.error(f"第 {_number} 棵植树失败")
+        return False
+
+
 def main():
     makedir()
     read_config()
@@ -319,6 +373,8 @@ def main():
         write_config()
     if config["remove_plants_by_rewarded_ad"]["enable"]:
         remove_plants_by_rewarded_ad()
+    if config["auto_plant"]:
+        auto_plant()
     Avalon.info("所有任务执行完毕~", front="\n")
 
 
