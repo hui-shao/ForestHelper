@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-# @Time    : 2020/8/3 23:58
+# @Time    : 2021/7/24 23:36
 # @Author  : Hui-Shao
 # %% imports
 import json
@@ -179,7 +179,10 @@ def get_plants():
             Avalon.error(f"从服务端获取 {file_name} 可能失败")
             return False
 
-    run()
+    try:
+        run()
+    except KeyboardInterrupt:
+        Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
 
 # %% 获取树木种类列表
@@ -215,7 +218,10 @@ def get_coin_tree_types():
             Avalon.error(f"从服务端获取 {file_name} 可能失败")
             return False
 
-    run()
+    try:
+        run()
+    except KeyboardInterrupt:
+        Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
 
 # %% 模拟观看广告删除枯树
@@ -310,37 +316,80 @@ def remove_plants_by_rewarded_ad():
             Avalon.info("删除种植记录成功")
             return True
 
-    run()
+    try:
+        run()
+    except KeyboardInterrupt:
+        Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
 
 # %% 自动植树刷金币
 def auto_plant():
-    plant_time = random.choice(list(range(30, 180, 5)))
-    tree_type = str(random.randint(1, 110))
-    note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
-    i = 1
-    while i <= 100:
-        plant_a_tree(plant_time, tree_type, note, i)
-        Avalon.info(f"将在 {plant_time} min后种植下一棵树")
-        time.sleep(plant_time * 60)
-        i += 1
+    def run():
+        plant_time = random.choice(list(range(30, 180, 5)))
+        tree_type = str(random.randint(1, 110))
+        note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
+        i = 1
+        while i <= config["auto_plant"]["number"]:
+            plant_a_tree(tree_type, plant_time, note, i)
+            Avalon.info(f"将在 {plant_time} min后种植下一棵树")
+            time.sleep(plant_time * 60)
+            i += 1
+
+    try:
+        run()
+    except KeyboardInterrupt:
+        Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+
+
+# %% 按照时间段种树
+def manually_plant():
+    def run():
+        i = 1
+        while 1:
+            tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): ", front="\n"))
+            if tree_type == -1:
+                break
+            plant_time = int(Avalon.gets("请输入种树时长(分钟): "))
+            note = str(Avalon.gets("请输入植树备注(可选): "))
+            end_time = str(Avalon.gets("请输入植树完成时的时间. 格式为 \'2021-07-24 17:30:05\' (可选): "))
+            print("\n")
+            plant_a_tree(tree_type, plant_time, note, i, end_time)
+            i += 1
+
+    try:
+        run()
+    except KeyboardInterrupt:
+        Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+
 
 # %% 种植一棵树
-def plant_a_tree(_plant_time, _tree_type, _note, _number):
-    end_time = datetime.now().isoformat()
-    start_time = (datetime.now() - timedelta(hours=8)).isoformat()
+def plant_a_tree(_tree_type, _plant_time, _note, _number, _end_time=""):
+    """
+    :param _plant_time: 种植时长 以分钟为单位 接受5的整数倍(int)
+    :param _tree_type: 树的种类 (int)
+    :param _note: 植树备注(str)
+    :param _number: 树的编号, 用于控制台输出(int)
+    :param _end_time: 种植完成的时间(str) 格式 2021-07-24 17:30:05
+    :return:
+    """
+    if len(_end_time):
+        end_time = datetime.strptime(_end_time, "%Y-%m-%d %H:%M:%S") - timedelta(hours=8)  # 注: 减去8小时是为了换算时区, 下同
+        start_time = end_time - timedelta(minutes=_plant_time)
+    else:
+        end_time = datetime.now() - timedelta(hours=8)
+        start_time = (end_time - timedelta(minutes=_plant_time))
     data = {
         "plant": {
-            "end_time": end_time,
+            "end_time": end_time.isoformat(),
             "longitude": 0,
             "note": _note,
             "is_success": 1,
             "room_id": 0,
             "die_reason": '',
-            "tag": 0,
+            "tag": random.randint(1, 6),
             "latitude": 0,
             "has_left": 0,
-            "start_time": start_time,
+            "start_time": start_time.isoformat(),
             "trees": [{
                 "phase": 4,
                 "theme": 0,
@@ -373,8 +422,10 @@ def main():
         write_config()
     if config["remove_plants_by_rewarded_ad"]["enable"]:
         remove_plants_by_rewarded_ad()
-    if config["auto_plant"]:
+    if config["auto_plant"]["enable"]:
         auto_plant()
+    if config["manually_plant"]["enable"]:
+        manually_plant()
     Avalon.info("所有任务执行完毕~", front="\n")
 
 

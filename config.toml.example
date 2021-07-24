@@ -13,4 +13,9 @@ enable = true # 开关
 
 # 自动植树(刷金币)
 [auto_plant]
+enable = false
+number = 100
+
+# 按照时间段植树
+[manually_plant]
 enable = true
