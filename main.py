@@ -149,17 +149,21 @@ def logout():
 
 
 # %% 获取树种列表  树木的gid, 名称, 哪些已解释
-def get_plants():
+def get_plants(_force_update=False):
     file_name = "plants.json"
 
     def run():
         Avalon.info(f"正在获取已种植列表 ({file_name})", front="\n")
-        if os.path.exists(f"UserFiles/{file_name}"):
-            Avalon.info(f"发现本地已存在 {file_name} , 进行读取...")
-            get_from_local()
-        else:
-            Avalon.warning(f"在本地未发现 {file_name} , 尝试从服务器端获取...")
+        if _force_update:
+            Avalon.info("已启用强制更新 plants.json")
             get_from_server()
+        else:
+            if os.path.exists(f"UserFiles/{file_name}"):
+                Avalon.info(f"发现本地已存在 {file_name} , 进行读取...")
+                get_from_local()
+            else:
+                Avalon.warning(f"在本地未发现 {file_name} , 尝试从服务器端获取...")
+                get_from_server()
 
     def get_from_local():
         global plants
@@ -253,7 +257,7 @@ def remove_plants_by_rewarded_ad():
         Avalon.info("正在查找枯树的id...用时可能较长..请稍候...", front="\n")
         dead_trees = []
         if len(plants) <= 0:
-            get_plants()
+            get_plants(True)
         for a in plants:
             if a["is_success"]:
                 continue
