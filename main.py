@@ -349,9 +349,18 @@ def manually_plant():
             tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): ", front="\n"))
             if tree_type == -1:
                 break
-            plant_time = int(Avalon.gets("请输入种树时长(分钟): "))
+            plant_time = int(Avalon.gets("请输入种树时长(单位为分钟 应输入5的倍数): "))
             note = str(Avalon.gets("请输入植树备注(可选): "))
-            end_time = str(Avalon.gets("请输入植树完成时的时间. 格式为 \'2021-07-24 17:30:05\' (可选): "))
+            while 1:
+                end_time = str(Avalon.gets("请输入植树完成时的时间. 格式为 \'2021-07-24 17:30:05\' (可选): "))
+                if not len(end_time):
+                    break  # 如果没有指定end_time, 则跳出循环, 防止被当成异常而被捕获
+                try:
+                    datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")  # 尝试将str转换为datetime, 以检查格式是否错误
+                except ValueError:
+                    Avalon.warning("日期输入有误，请重新输入", end="\n")
+                else:
+                    break
             print("\n")
             plant_a_tree(tree_type, plant_time, note, i, end_time)
             i += 1
