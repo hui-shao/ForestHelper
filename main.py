@@ -81,7 +81,7 @@ def _requests(_method, _url, _data=None, _ex_hea=None):
         "Content-Type":
             "application/json; charset=utf-8",
         "Host": url_parse.netloc,
-        "User-Agent": "Forest/342 (iPhone; iOS 12.1.2; Scale/3.00)"
+        "User-Agent": "okhttp/4.9.1"
     }
     if _ex_hea:
         hea.update(_ex_hea)
@@ -128,7 +128,7 @@ def login():
 def logout():
     Avalon.info("正在登出...", front="\n")
     global uid, remember_token
-    url = f"https://c88fef96.forestapp.cc/api/v1/sessions/signout?seekrua=android_cn-4.20.1&seekruid={uid}"
+    url = f"https://c88fef96.forestapp.cc/api/v1/sessions/signout?seekrua=android_cn-4.41.0&seekruid={uid}"
     r = _requests("delete", url, {}, {})
     if r.status_code != 200:
         Avalon.error(f"登出可能失败")
@@ -167,7 +167,7 @@ def get_plants():
 
     def get_from_server():
         global plants
-        url = f"https://c88fef96.forestapp.cc/api/v1/plants?seekrua=android_cn-4.20.1&seekruid={uid}"
+        url = f"https://c88fef96.forestapp.cc/api/v1/plants?seekrua=android_cn-4.41.0&seekruid={uid}"
         r = _requests("get", url, {}, {})
         if r.status_code == 200:
             plants = json.loads(r.text)
@@ -206,7 +206,7 @@ def get_coin_tree_types():
 
     def get_from_server():
         global coin_tree_types
-        url = f"https://c88fef96.forestapp.cc/api/v1/products/coin_tree_types?seekrua=android_cn-4.20.1&seekruid={uid}"
+        url = f"https://c88fef96.forestapp.cc/api/v1/products/coin_tree_types?seekrua=android_cn-4.41.0&seekruid={uid}"
         r = _requests("get", url)
         if r.status_code == 200:
             coin_tree_types = json.loads(r.text)
@@ -280,14 +280,14 @@ def remove_plants_by_rewarded_ad():
             return False
 
     def simulate_watch_ad(_ad_token, _ad_session_token):
-        url_1 = f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/watched?seekrua=android_cn-4.20.1&seekruid={uid}"
+        url_1 = f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/watched?seekrua=android_cn-4.41.0&seekruid={uid}"
         data_1 = {"ad_session_token": f"{_ad_session_token}"}
         r_1 = _requests("put", url_1, data_1)
         if r_1.status_code != 200:
             Avalon.error("模拟观看广告失败!  位置: 1")
             return False
         time.sleep(0.3)
-        url_2 = f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/claim?seekrua=android_cn-4.20.1&seekruid={uid}"
+        url_2 = f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/claim?seekrua=android_cn-4.41.0&seekruid={uid}"
         data_2 = {"ad_session_token": f"{_ad_session_token}", "user_id": uid}
         r_2 = _requests("put", url_2, data_2)
         if r_2.status_code != 200:
@@ -301,7 +301,7 @@ def remove_plants_by_rewarded_ad():
         if uid <= 0:
             Avalon.error("uid错误")
             return False
-        url = f"https://c88fef96.forestapp.cc/api/v1/plants/{_id}/remove_plant_by_rewarded_ad?seekrua=android_cn-4.20.1&seekruid={uid}"
+        url = f"https://c88fef96.forestapp.cc/api/v1/plants/{_id}/remove_plant_by_rewarded_ad?seekrua=android_cn-4.41.0&seekruid={uid}"
         r = _requests("delete", url)
         if r.status_code != 200:
             Avalon.error("删除种植记录失败!")
@@ -409,14 +409,15 @@ def plant_a_tree(_tree_type, _plant_time, _note, _number, _end_time=""):
         },
         "seekruid": uid
     }
-    res = _requests("post", 'https://c88fef96.forestapp.cc/api/v1/plants', data, {})
+    res = _requests("post", f'https://c88fef96.forestapp.cc/api/v1/plants?seekrua=android_cn-4.41.0&seekruid={uid}',
+                    data, {})
     try:
         result = json.loads(res.text)
         if result["is_success"]:
             Avalon.info(f"第 {_number} 棵植树成功")
             return True
         else:
-            Avalon.error(f"第 {_number} 棵植树失败")
+            Avalon.error(f"第 {_number} 棵植树失败 {result}")
             return False
     except Exception:
         Avalon.error(f"第 {_number} 棵植树失败")
