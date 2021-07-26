@@ -113,8 +113,10 @@ def login():
         "seekruid": ""
     }
     r = _requests("post", "https://c88fef96.forestapp.cc/api/v1/sessions", data, {})
-    if r.status_code != 200:
-        Avalon.error("登录可能失败")
+    if r.status_code == 403:
+        Avalon.error("登录失败! 请检查账号及密码 响应代码: 403 Forbidden")
+    elif r.status_code != 200:
+        Avalon.error(f"登录可能失败 响应代码: {r.status_code}")
         return False
     else:
         id_info = json.loads(r.text)
