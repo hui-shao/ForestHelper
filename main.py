@@ -389,25 +389,31 @@ def plant_a_tree(_tree_type, _plant_time, _note, _number, _end_time=""):
     else:
         end_time = datetime.now() - timedelta(hours=8)
         start_time = (end_time - timedelta(minutes=_plant_time))
+    trees_list = []  # 储存植树信息, 用于data的构造
+    tree_count = int(_plant_time / 30)
+    if tree_count > 4:  # forest规定最多只能种4棵树
+        tree_count = 4
+    for i in range(0, tree_count, 1):  # 要种几棵树, trees里面就要有几个元素
+        trees_list.append({
+            "plant_id": -1,  # 本来应该取 len(plants) 然后再加个1，但是这里直接传 -1 似乎也没影响
+            "tree_type": _tree_type,
+            "is_dead": False,
+            "phase": i + 4
+        })
     data = {
         "plant": {
+            "id": -1,
+            "start_time": start_time.isoformat(),
             "end_time": end_time.isoformat(),
-            "longitude": 0,
-            "note": _note,
-            "is_success": 1,
-            "room_id": 0,
+            "mode": "countdown",
+            "is_success": True,
             "die_reason": '',
             "tag": random.randint(1, 6),
-            "latitude": 0,
-            "has_left": 0,
-            "start_time": start_time.isoformat(),
-            "trees": [{
-                "phase": 4,
-                "theme": 0,
-                "is_dead": 0,
-                "position": -1,
-                "tree_type": _tree_type
-            }]
+            "note": _note,
+            "has_left": False,
+            "deleted": False,
+            "room_id": -1,
+            "trees": trees_list
         },
         "seekruid": uid
     }
@@ -416,7 +422,8 @@ def plant_a_tree(_tree_type, _plant_time, _note, _number, _end_time=""):
     try:
         result = json.loads(res.text)
         if result["is_success"]:
-            Avalon.info(f"第 {_number} 棵植树成功")
+            count = result["tree_count"]
+            Avalon.info(f"第 {_number} 棵植树成功  数量: {count}")
             return True
         else:
             Avalon.error(f"第 {_number} 棵植树失败 {result}")
