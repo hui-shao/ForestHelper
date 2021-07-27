@@ -19,3 +19,7 @@ number = 100
 # 按照时间段植树
 [manually_plant]
 enable = true
+
+# 完成任务后自动登出
+[auto_logout]
+enable = false
