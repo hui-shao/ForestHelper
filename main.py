@@ -355,7 +355,9 @@ def manually_plant():
             tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): ", front="\n"))
             if tree_type == -1:
                 break
-            plant_time = int(Avalon.gets("请输入种树时长(单位为分钟 应输入5的倍数): "))
+            plant_time = int(Avalon.gets("请输入种树时长(分钟): "))
+            if plant_time % 5 != 0:
+                plant_time = int(plant_time / 5) * 5
             note = str(Avalon.gets("请输入植树备注(可选): "))
             while 1:
                 end_time = str(Avalon.gets("请输入植树完成时的时间. 格式为 \'2021-07-24 17:30:05\' (可选): "))
