@@ -336,7 +336,7 @@ def auto_plant():
         note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
         i = 1
         while i <= config["auto_plant"]["number"]:
-            plant_a_tree(tree_type, plant_time, note, i)
+            plant_a_tree("countdown", tree_type, plant_time, note, i)
             Avalon.info(f"将在 {plant_time} min后种植下一棵树")
             time.sleep(plant_time * 60)
             i += 1
@@ -350,13 +350,15 @@ def auto_plant():
 # %% 按照时间段种树
 def manually_plant():
     def run():
+        Avalon.info("========== 当前任务: 手动种植 ==========", front="\n")
         i = 1
         while 1:
-            tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): ", front="\n"))
+            tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): "))
             if tree_type == -1:
                 break
+            plant_mode = "countup" if str(Avalon.gets("选择种植模式 -> 1.倒计时 2.正计时 : ")) == "2" else "countdown"
             plant_time = int(Avalon.gets("请输入种树时长(分钟): "))
-            if plant_time % 5 != 0:
+            if (plant_mode == "countdown") and (plant_time % 5 != 0):
                 plant_time = int(plant_time / 5) * 5
             note = str(Avalon.gets("请输入植树备注(可选): "))
             while 1:
@@ -370,7 +372,7 @@ def manually_plant():
                 else:
                     break
             print("\n")
-            plant_a_tree(tree_type, plant_time, note, i, end_time)
+            plant_a_tree(plant_mode, tree_type, plant_time, note, i, end_time)
             i += 1
 
     try:
@@ -380,9 +382,10 @@ def manually_plant():
 
 
 # %% 种植一棵树
-def plant_a_tree(_tree_type, _plant_time, _note, _number, _end_time=""):
+def plant_a_tree(_plant_mode, _tree_type, _plant_time, _note, _number, _end_time=""):
     """
-    :param _plant_time: 种植时长 以分钟为单位 接受5的整数倍(int)
+    :param _plant_mode: 种植模式(str) 接受 "countup"（正计时） 和 "countdown"（倒计时）
+    :param _plant_time: 种植时长 以分钟为单位
     :param _tree_type: 树的种类 (int)
     :param _note: 植树备注(str)
     :param _number: 树的编号, 用于控制台输出(int)
@@ -411,7 +414,7 @@ def plant_a_tree(_tree_type, _plant_time, _note, _number, _end_time=""):
             "id": -1,
             "start_time": start_time.isoformat(),
             "end_time": end_time.isoformat(),
-            "mode": "countdown",
+            "mode": _plant_mode,
             "is_success": True,
             "die_reason": '',
             "tag": random.randint(1, 6),
@@ -432,10 +435,10 @@ def plant_a_tree(_tree_type, _plant_time, _note, _number, _end_time=""):
             Avalon.info(f"第 {_number} 棵植树成功  数量: {count}")
             return True
         else:
-            Avalon.error(f"第 {_number} 棵植树失败 {result}")
+            Avalon.error(f"第 {_number} 棵植树失败  响应码: {res.status_code}  {result}")
             return False
     except Exception:
-        Avalon.error(f"第 {_number} 棵植树失败")
+        Avalon.error(f"第 {_number} 棵植树失败  响应码: {res.status_code}")
         return False
 
 
