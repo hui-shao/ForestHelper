@@ -176,6 +176,7 @@ class Forest:
     # %% 模拟观看广告删除枯树
     def remove_plants_by_rewarded_ad(self):
         def run():
+            Avalon.info("========== 当前任务: 删除枯树 ==========", front="\n")
             dead_plants = find_dead_plant_id()
             if not dead_plants:
                 Avalon.warning("当前plants.json中未发现枯树")
@@ -271,9 +272,108 @@ class Forest:
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
+    # %% 创建房间(一起种)
+    def create_room(self):
+        def run():
+            Avalon.info("========== 当前任务: 创建房间 ==========", front="\n")
+            room_info = create()
+            if not len(room_info):
+                return None
+            try:
+                Avalon.info("接下来将显示房间内成员数, 当人数足够(大于1)时请按下 \"Ctrl + C\"")
+                i = 1
+                while i <= 100:
+                    members_info = get_members_info(room_info["id"])
+                    name_list = []
+                    for user in members_info["participants"]:
+                        name_list.append(user["name"])
+                    Avalon.info(f"循环次数: {i} 当前人数: {members_info['participants_count']} -> id: {name_list}", end="\r")
+                    time.sleep(15)
+                    i += 1
+                Avalon.warning("达到最大循环次数, 自动退出成员监视", front="\n")
+            except KeyboardInterrupt:
+                Avalon.info("捕获 KeyboardInterrupt, 已退出成员监视 ", front="\n")
+            if str(Avalon.gets("是否保留该房间 -> 1.是 2.否 : ")) == "2":
+                leave(room_info["id"])
+                return None
+            if str(Avalon.gets("是否开始 -> 1.是 2.否 : ")) == "1":
+                start(room_info["id"], int(room_info["target_duration"]) / 60)
+            return None
+
+        def create():
+            tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): ", front="\n"))
+            if tree_type == -1:
+                return None
+            plant_time = int(Avalon.gets("请输入种树时长(分钟): "))
+            if plant_time % 5 != 0:
+                plant_time = int(plant_time / 5) * 5
+            data = {
+                "is_birthday_2019_client": True,  # 不知道有什么用
+                "target_duration": plant_time * 60,
+                "tree_type": tree_type,
+                "room_type": "chartered"
+            }
+            res = self._requests("post",
+                                 f'https://c88fef96.forestapp.cc/api/v1/rooms?seekrua=android_cn-4.41.0&seekruid={self.uid}',
+                                 data, {})
+            if res.status_code != 201:
+                Avalon.error(f"创建房间可能失败  响应码: {res.status_code}")
+                return None
+            try:
+                result = json.loads(res.text)
+                Avalon.info(f"房间创建成功!  token: {result['token']}")
+                return result
+            except Exception as err_info:
+                Avalon.error(f"创建失败 原因: {err_info}")
+                return None
+
+        def get_members_info(_room_id):
+            res = self._requests("get", f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}',
+                                 {"is_birthdat_2019_client": True, "detail": True, "seekrua": "android_cn-4.41.0",
+                                  "seekruid": self.uid}, {})
+            if res.status_code != 200:
+                Avalon.error(f"获取成员信息可能失败  响应码: {res.status_code}")
+                return None
+            else:
+                result = json.loads(res.text)
+                return result
+
+        def leave(_room_id):
+            res = self._requests("put",
+                                 f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/leave?seekrua=android_cn-4.41.0&seekruid={self.uid}',
+                                 {}, {})
+            if res.status_code != 200:
+                Avalon.error(f"退出房间可能失败  响应码: {res.status_code}")
+                return False
+            else:
+                Avalon.info("退出房间成功")
+            return True
+
+        def start(_room_id, _plant_time):
+            res = self._requests("put",
+                                 f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/start?seekrua=android_cn-4.41.0&seekruid={self.uid}',
+                                 {}, {})
+            if res.status_code == 423:
+                Avalon.error(f"房间开始失败, 人数不足")
+                return False
+            elif res.status_code != 200:
+                Avalon.error(f"房间开始可能失败  响应码: {res.status_code}")
+                return False
+            else:
+                result = json.loads(res.text)
+                Avalon.info(
+                    f"房间开始成功! 共计{result['participants_count']}人  预计完成时间{datetime.strftime(datetime.now() + timedelta(minutes=_plant_time), '%Y-%m-%d %H:%M:%S')}")
+                return True
+
+        try:
+            run()
+        except KeyboardInterrupt:
+            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+
     # %% 自动植树刷金币
     def auto_plant(self, _total_n):
         def run():
+            Avalon.info("========== 当前任务: 自动植树 ==========", front="\n")
             plant_time = random.choice(list(range(30, 180, 5)))
             tree_type = str(random.randint(1, 110))
             note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
@@ -289,7 +389,7 @@ class Forest:
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
-    # %% 按照时间段种树
+    # %% 手动植树
     def manually_plant(self):
         def run():
             Avalon.info("========== 当前任务: 手动种植 ==========", front="\n")

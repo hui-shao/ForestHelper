@@ -16,9 +16,13 @@ enable = true # 开关
 enable = false
 number = 100
 
-# 按照时间段植树
+# 手动植树
 [manually_plant]
 enable = true
+
+# 创建房间(一起种)
+[create_room]
+enable = false
 
 # 完成任务后自动登出
 [auto_logout]

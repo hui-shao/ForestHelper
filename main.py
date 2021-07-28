@@ -92,6 +92,8 @@ def run():
         F.auto_plant(config["auto_plant"]["number"])
     if config["manually_plant"]["enable"]:
         F.manually_plant()
+    if config["create_room"]["enable"]:
+        F.create_room()
     if config["auto_logout"]["enable"]:
         logout()
     Avalon.info("所有任务执行完毕~", front="\n")
