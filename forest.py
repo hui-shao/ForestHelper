@@ -278,6 +278,7 @@ class Forest:
             Avalon.info("========== 当前任务: 创建房间 ==========", front="\n")
             room_info = create()
             if not len(room_info):
+                Avalon.error("未获取到服务器返回的房间信息!")
                 return None
             try:
                 Avalon.info("接下来将显示房间内成员数, 当人数足够(大于1)时请按下 \"Ctrl + C\"")
@@ -297,7 +298,12 @@ class Forest:
                 leave(room_info["id"])
                 return None
             if str(Avalon.gets("是否开始 -> 1.是 2.否 : ")) == "1":
-                start(room_info["id"], int(room_info["target_duration"]) / 60)
+                plant_time = int(room_info["target_duration"]) / 60
+                end_time = datetime.strftime(
+                    datetime.now() + timedelta(minutes=plant_time), "%Y-%m-%d %H:%M:%S")
+                start(room_info["id"], end_time)
+                Avalon.info("开始发送种植信息...")
+                self.plant_a_tree("countdown", room_info["tree_type"], plant_time, "", 1, end_time, room_info["id"])
             return None
 
         def create():
@@ -349,7 +355,7 @@ class Forest:
                 Avalon.info("退出房间成功")
             return True
 
-        def start(_room_id, _plant_time):
+        def start(_room_id, _end_time):
             res = self._requests("put",
                                  f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/start?seekrua=android_cn-4.41.0&seekruid={self.uid}',
                                  {}, {})
@@ -362,7 +368,7 @@ class Forest:
             else:
                 result = json.loads(res.text)
                 Avalon.info(
-                    f"房间开始成功! 共计{result['participants_count']}人  预计完成时间{datetime.strftime(datetime.now() + timedelta(minutes=_plant_time), '%Y-%m-%d %H:%M:%S')}")
+                    f"房间开始成功! 共计{result['participants_count']}人  预计完成时间: {_end_time}")
                 return True
 
         try:
@@ -422,7 +428,7 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 种植一棵树
-    def plant_a_tree(self, _plant_mode, _tree_type, _plant_time, _note, _number, _end_time=""):
+    def plant_a_tree(self, _plant_mode, _tree_type, _plant_time, _note, _number, _end_time="", _room_id=-1):
         """
         :param _plant_mode: 种植模式(str) 接受 "countup"（正计时） 和 "countdown"（倒计时）
         :param _plant_time: 种植时长 以分钟为单位
@@ -430,6 +436,7 @@ class Forest:
         :param _note: 植树备注(str)
         :param _number: 树的编号, 用于控制台输出(int)
         :param _end_time: 种植完成的时间(str) 格式 2021-07-24 17:30:05
+        :param _room_id: 一起种模式下的房间ID(int)
         :return:
         """
         if len(_end_time):
@@ -463,7 +470,7 @@ class Forest:
                 "note": _note,
                 "has_left": False,
                 "deleted": False,
-                "room_id": -1,
+                "room_id": _room_id,
                 "trees": trees_list
             },
             "seekruid": self.uid
