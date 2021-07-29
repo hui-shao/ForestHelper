@@ -509,10 +509,10 @@ class Forest:
             },
             "seekruid": self.uid
         }
-        res = self._requests("post",
-                             f'https://c88fef96.forestapp.cc/api/v1/plants?seekrua=android_cn-4.41.0&seekruid={self.uid}',
-                             data, {})
         try:
+            res = self._requests("post",
+                                 f'https://c88fef96.forestapp.cc/api/v1/plants?seekrua=android_cn-4.41.0&seekruid={self.uid}',
+                                 data, {})
             result = json.loads(res.text)
             if result["is_success"]:
                 count = result["tree_count"]
@@ -521,6 +521,9 @@ class Forest:
             else:
                 Avalon.error(f"第 {_number} 棵植树失败  响应码: {res.status_code}  {result}")
                 return False
-        except Exception:
-            Avalon.error(f"第 {_number} 棵植树失败  响应码: {res.status_code}")
+        except json.decoder.JSONDecodeError:
+            Avalon.error(f"第 {_number} 棵植树失败 载入服务器返回Text失败")
+            return False
+        except Exception as err_info:
+            Avalon.error(f"第 {_number} 棵植树失败  其他错误: {err_info}")
             return False
