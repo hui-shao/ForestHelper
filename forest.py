@@ -278,7 +278,7 @@ class Forest:
             Avalon.info("========== 当前任务: 创建房间 ==========", front="\n")
             room_info = create()
             if not len(room_info):
-                Avalon.error("未获取到服务器返回的房间信息!")
+                Avalon.error("未获取到服务器返回的房间信息! 当前任务退出")
                 return None
             try:
                 Avalon.info("接下来将显示房间内成员数, 当人数足够(大于1)时请按下 \"Ctrl + C\"")
@@ -312,7 +312,7 @@ class Forest:
         def create():
             tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): ", front="\n"))
             if tree_type == -1:
-                return None
+                return {}
             plant_time = int(Avalon.gets("请输入种树时长(分钟): "))
             if plant_time % 5 != 0:
                 plant_time = int(plant_time / 5) * 5
@@ -327,14 +327,17 @@ class Forest:
                                  data, {})
             if res.status_code != 201:
                 Avalon.error(f"创建房间可能失败  响应码: {res.status_code}")
-                return None
+                return {}
             try:
                 result = json.loads(res.text)
                 Avalon.info(f"房间创建成功!  token: {result['token']}")
                 return result
+            except json.decoder.JSONDecodeError:
+                Avalon.error(f"房间创建失败! 载入服务器返回Text失败")
+                return {}
             except Exception as err_info:
                 Avalon.error(f"创建失败 原因: {err_info}")
-                return None
+                return {}
 
         def get_members_info(_room_id):
             res = self._requests("get", f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}',
