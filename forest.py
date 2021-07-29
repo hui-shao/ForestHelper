@@ -287,7 +287,7 @@ class Forest:
                     members_info = get_members_info(room_info["id"])
                     name_list = []
                     for user in members_info["participants"]:
-                        name_list.append(user["name"])
+                        name_list.append(f"{user['name']} {user['user_id']}")
                     Avalon.info(f"循环次数: {i} 当前人数: {members_info['participants_count']} -> id: {name_list}", end="\r")
                     time.sleep(15)
                     i += 1
@@ -297,6 +297,9 @@ class Forest:
             if str(Avalon.gets("是否保留该房间 -> 1.是 2.否 : ")) == "2":
                 leave(room_info["id"])
                 return None
+            if str(Avalon.gets("是否有需要移除的成员 -> 1.是 2.否 : ")) == "1":
+                kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔")).split(" ")
+                kick(room_info["id"], kick_uid_list)
             if str(Avalon.gets("是否开始 -> 1.是 2.否 : ")) == "1":
                 plant_time = int(room_info["target_duration"]) / 60
                 end_time = datetime.strftime(
@@ -343,6 +346,37 @@ class Forest:
             else:
                 result = json.loads(res.text)
                 return result
+
+        def kick(_room_id, _uid_list):
+            if not len(_uid_list):
+                Avalon.warning("未接收到传入的uid")
+                return False
+            for uid_str in _uid_list:
+                try:
+                    res = self._requests("put", f"https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/kick",
+                                         {"user_id": int(uid_str), "seekrua": "android_cn-4.41.0",
+                                          "seekruid": self.uid}, {})
+                except ValueError:
+                    Avalon.warning(f"输入的uid \"{uid_str}\" 有误, 已跳过")
+                    continue
+                except (ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout,
+                        requests.exceptions.SSLError):
+                    Avalon.error("网络连接超时")
+                    continue
+                except Exception as err_info:
+                    Avalon.error(f"未知错误! {err_info}")
+                    return False
+                else:
+                    if res.status_code == 200:
+                        Avalon.info(f"移除成员 {uid_str} 成功")
+                        continue
+                    elif res.status_code == 410:
+                        Avalon.warning(f"成员 {uid_str} 不存在")
+                        continue
+                    else:
+                        Avalon.error(f"移除成员 {uid_str} 失败!  返回码: {res.status_code}")
+                        continue
+            return True
 
         def leave(_room_id):
             res = self._requests("put",
