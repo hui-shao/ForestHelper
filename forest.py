@@ -280,6 +280,8 @@ class Forest:
             if not len(room_info):
                 Avalon.error("未获取到服务器返回的房间信息! 当前任务退出")
                 return None
+            elif "exit" in room_info:
+                return None
             try:
                 Avalon.info("接下来将显示房间内成员数, 当人数足够(大于1)时请按下 \"Ctrl + C\"")
                 i = 1
@@ -312,7 +314,7 @@ class Forest:
         def create():
             tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): ", front="\n"))
             if tree_type == -1:
-                return {}
+                return {"exit": True}
             plant_time = int(Avalon.gets("请输入种树时长(分钟): "))
             if plant_time % 5 != 0:
                 plant_time = int(plant_time / 5) * 5
