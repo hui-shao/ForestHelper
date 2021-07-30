@@ -11,6 +11,7 @@ import toml
 
 from avalon import Avalon
 from forest import Forest
+from user_info import User
 
 
 # %% 建立用于保存用户文件的目录
@@ -50,7 +51,7 @@ def read_config():
 def write_config():
     config_file = sys.argv[1] if len(sys.argv) > 1 else "config.toml"
     config_2 = config.copy()
-    config_2["user"].update({"uid": uid, "remember_token": remember_token})
+    config_2["user"].update({"uid": user.uid, "remember_token": user.remember_token})
     try:
         f = open(config_file, "w+", encoding="utf-8")
         toml.dump(config_2, f)
@@ -63,10 +64,9 @@ def write_config():
 
 
 def logout():
-    global uid, remember_token
     if F.logout():
-        uid = 0
-        remember_token = ""
+        user.uid = 0
+        user.remember_token = ""
         write_config()
     try:
         shutil.rmtree("UserFiles")
@@ -75,12 +75,11 @@ def logout():
 
 
 def login():
-    global uid, remember_token
-    if uid * len(remember_token) == 0:  # 若未读取到保存的 uid 和 remember_token 则调用登录
+    if user.uid * len(user.remember_token) == 0:  # 若未读取到保存的 uid 和 remember_token 则调用登录
         login_info = F.login()
         if len(login_info):
-            uid = login_info["uid"]
-            remember_token = login_info["remember_token"]
+            user.uid = login_info["uid"]
+            user.remember_token = login_info["remember_token"]
             write_config()
 
 
@@ -108,7 +107,8 @@ if __name__ == '__main__':
     remember_token = ""
     makedir()
     if read_config():
-        F = Forest(username, passwd, uid, remember_token)
+        user = User(username, passwd, uid, remember_token)
+        F = Forest(user)
         run()
     else:
         sys.exit(0)
