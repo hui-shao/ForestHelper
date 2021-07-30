@@ -67,7 +67,7 @@ class Forest:
         file_name = "plants.json"
 
         def run():
-            Avalon.info(f"正在获取已种植列表 ({file_name})", front="\n")
+            Avalon.info(f"正在获取已种植列表 ({file_name})")
             if _force_update:
                 Avalon.info("已启用强制更新 plants.json")
                 get_from_server()
@@ -138,45 +138,27 @@ class Forest:
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
-    # %% 模拟观看广告删除枯树
-    def remove_plants_by_rewarded_ad(self):
-        def run():
-            Avalon.info("========== 当前任务: 删除枯树 ==========", front="\n")
-            dead_plants = find_dead_plant_id()
-            if not dead_plants:
-                Avalon.warning("当前plants.json中未发现枯树")
-                return True
-            for tree in dead_plants:
-                Avalon.info(
-                    f"正在删除枯树...编号:%d  种类代码:%d  数量:%d棵" % (tree["id"], tree["tree_type_gid"], tree["tree_count"]),
-                    front="\n")
-                ad_session_token = get_ad_session_token()
-                ad_token = get_ad_token(ad_session_token)
-                if ad_token is False:
-                    return False
-                else:
-                    time.sleep(1)
-                    if not simulate_watch_ad(ad_token, ad_session_token):
-                        return False
-                    else:
-                        time.sleep(0.5)
-                        return delete_plants(tree["id"])
+    # %% 模拟观看广告操作
+    def simulate_watch_ad(self):
+        """
+        模拟观看广告操作
+        :return: (bool)
+        """
 
-        # 从plants.json中查找枯树的id
-        def find_dead_plant_id():
-            Avalon.info("正在查找枯树的id...用时可能较长..请稍候...", front="\n")
-            dead_trees = []
-            if len(self.plants) <= 0:
-                self.get_plants(True)
-            for a in self.plants:
-                if a["is_success"]:
-                    continue
-                else:
-                    dead_trees.append(a)
-                    continue
-            return dead_trees
+        def run():
+            ad_session_token = get_ad_session_token()
+            if ad_session_token is False:
+                return False
+            ad_token = get_ad_token(ad_session_token)
+            if ad_token is False:
+                return False
+            time.sleep(1)
+            return simulate_watch(ad_token, ad_session_token)
 
         def get_ad_session_token():
+            """
+            获取 ad_session_token 以便接下来获取 ad_token
+            """
             r = self.req.my_requests("post", "https://receipt-system.seekrtech.com/projects/1/ad_sessions", {}, {})
             if (r.status_code == 201) or (r.status_code == 200):
                 Avalon.info("获取 ad_session_token 成功")
@@ -195,23 +177,63 @@ class Forest:
                 Avalon.error("获取 ad_token 失败")
                 return False
 
-        def simulate_watch_ad(_ad_token, _ad_session_token):
-            url_1 = f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/watched?seekrua=android_cn-4.41.0&seekruid={self.user.uid}"
-            data_1 = {"ad_session_token": f"{_ad_session_token}"}
-            r_1 = self.req.my_requests("put", url_1, data_1)
-            if r_1.status_code != 200:
-                Avalon.error("模拟观看广告失败!  位置: 1")
+        def simulate_watch(_ad_token, _ad_session_token):
+            res_1 = self.req.my_requests("put",
+                                         f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/watched?seekrua=android_cn-4.41.0&seekruid={self.user.uid}",
+                                         {"ad_session_token": f"{_ad_session_token}"})
+            if res_1.status_code != 200:
+                Avalon.error("模拟观看广告失败!  位置: 1 -> watched")
                 return False
             time.sleep(0.3)
-            url_2 = f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/claim?seekrua=android_cn-4.41.0&seekruid={self.user.uid}"
-            data_2 = {"ad_session_token": f"{_ad_session_token}", "user_id": self.user.uid}
-            r_2 = self.req.my_requests("put", url_2, data_2)
-            if r_2.status_code != 200:
-                Avalon.error("模拟观看广告失败!  位置: 2")
+            res_2 = self.req.my_requests("put",
+                                         f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/claim?seekrua=android_cn-4.41.0&seekruid={self.user.uid}",
+                                         {"ad_session_token": f"{_ad_session_token}", "user_id": self.user.uid})
+            if res_2.status_code != 200:
+                Avalon.error("模拟观看广告失败!  位置: 2 -> claim")
                 return False
             else:
                 Avalon.info("模拟观看广告成功")
                 return True
+
+        try:
+            return run()
+        except KeyboardInterrupt:
+            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+
+    # %% 模拟观看广告删除枯树
+    def remove_plants_by_rewarded_ad(self):
+        """
+        通过模拟观看广告从而免金币删除枯树
+        :return: (bool)
+        """
+
+        def run():
+            Avalon.info("========== 当前任务: 删除枯树 ==========", front="\n")
+            dead_plants = find_dead_plant_id()
+            if not dead_plants:
+                Avalon.warning("当前plants.json中未发现枯树 已退出")
+                return True
+            for tree in dead_plants:
+                Avalon.info("正在删除枯树...编号:%d  种类代码:%d  数量:%d棵" % (tree["id"], tree["tree_type_gid"], tree["tree_count"]))
+                if self.simulate_watch_ad() is False:
+                    return False
+                else:
+                    time.sleep(0.5)
+                    return delete_plants(tree["id"])
+
+        # 从plants.json中查找枯树的id
+        def find_dead_plant_id():
+            dead_trees = []
+            if len(self.plants) <= 0:
+                self.get_plants(True)
+            Avalon.info("正在查找枯树的id...用时可能较长..请稍候...")
+            for a in self.plants:
+                if a["is_success"]:
+                    continue
+                else:
+                    dead_trees.append(a)
+                    continue
+            return dead_trees
 
         def delete_plants(_id):
             if self.user.uid <= 0:
@@ -233,7 +255,7 @@ class Forest:
                 return True
 
         try:
-            run()
+            return run()
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
@@ -439,9 +461,9 @@ class Forest:
         :param _tree_type: 树的种类 (int)
         :param _note: 植树备注(str)
         :param _number: 树的编号, 用于控制台输出(int)
-        :param _end_time: 种植完成的时间(str) 格式 2021-07-24 17:30:05
+        :param _end_time: 种植完成的时间(str) 格式 2021-01-01 12:00:00
         :param _room_id: 一起种模式下的房间ID(int)
-        :return:
+        :return: (bool)
         """
         if len(_end_time):
             end_time = datetime.strptime(_end_time, "%Y-%m-%d %H:%M:%S") - timedelta(hours=8)  # 注: 减去8小时是为了换算时区, 下同
