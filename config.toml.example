@@ -11,6 +11,10 @@ remember_token = ""  # 初次使用保持现状即可, 无需设置
 [remove_plants_by_rewarded_ad]
 enable = true # 开关
 
+# 通过模拟观看广告获取双倍金币
+[boost_plant_by_rewarded_ad]
+enable = false
+
 # 自动植树(刷金币)
 [auto_plant]
 enable = false

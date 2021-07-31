@@ -88,11 +88,11 @@ def run():
     if config["remove_plants_by_rewarded_ad"]["enable"]:
         F.remove_plants_by_rewarded_ad()
     if config["auto_plant"]["enable"]:
-        F.auto_plant(config["auto_plant"]["number"])
+        F.auto_plant(_total_n=config["auto_plant"]["number"], _boost_by_ad=config["boost_plant_by_rewarded_ad"]["enable"])
     if config["manually_plant"]["enable"]:
-        F.manually_plant()
+        F.manually_plant(_boost_by_ad=config["boost_plant_by_rewarded_ad"]["enable"])
     if config["create_room"]["enable"]:
-        F.create_room()
+        F.create_room(_boost_by_ad=config["boost_plant_by_rewarded_ad"]["enable"])
     if config["auto_logout"]["enable"]:
         logout()
     Avalon.info("所有任务执行完毕~", front="\n")

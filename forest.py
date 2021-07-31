@@ -62,7 +62,7 @@ class Forest:
             self.user.remember_token = ""
             return True
 
-    # %% 获取树种列表  树木的gid, 名称, 哪些已解释
+    # %% 获取树种列表  树木的gid, 名称, 哪些已解锁
     def get_plants(self, _force_update=False):
         file_name = "plants.json"
 
@@ -169,7 +169,9 @@ class Forest:
 
         def get_ad_token(_ad_session_token):
             data = {"ad_session_token": f"{_ad_session_token}"}
-            r = self.req.my_requests("post", "https://receipt-system.seekrtech.com/sv_rewarded_ad_views", data, {})
+            r = self.req.my_requests("post",
+                                     f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views?seekrua=android_cn-4.41.0&seekruid={self.user.uid}",
+                                     data, {})
             if (r.status_code == 201) or (r.status_code == 200):
                 Avalon.info("获取 ad_token 成功")
                 return json.loads(r.text)["token"]
@@ -259,8 +261,38 @@ class Forest:
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
+    # %% 模拟观看广告加速种植
+    def boost_plant_by_rewarded_ad(self, _plant_id):
+        def run():
+            Avalon.info("正在尝试获取双倍金币...")
+            try:
+                if self.simulate_watch_ad() is False:
+                    return False
+                res = self.req.my_requests("put",
+                                           f"https://c88fef96.forestapp.cc/api/v1/plants/{_plant_id}/boost_plant_by_rewarded_ad",
+                                           {"seekrua": "android_cn-4.41.0", "seekruid": self.user.uid}, {})
+            except (ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout,
+                    requests.exceptions.SSLError):
+                Avalon.error("网络连接超时")
+                return False
+            except Exception as err_info:
+                Avalon.error(f"未知错误! {err_info}")
+                return False
+            else:
+                if res.status_code == 200:
+                    Avalon.info(f"获取双倍金币成功")
+                    return True
+                else:
+                    Avalon.error(f"获取双倍金币失败!  返回码: {res.status_code}")
+                    return False
+
+        try:
+            return run()
+        except KeyboardInterrupt:
+            Avalon.warning("捕获到KeyboardInterrupt, 退出")
+
     # %% 创建房间(一起种)
-    def create_room(self):
+    def create_room(self, _boost_by_ad):
         def run():
             Avalon.info("========== 当前任务: 创建房间 ==========", front="\n")
             room_info = create()
@@ -295,7 +327,8 @@ class Forest:
                     datetime.now() + timedelta(minutes=plant_time), "%Y-%m-%d %H:%M:%S")
                 start(room_info["id"], end_time)
                 Avalon.info("开始发送种植信息...")
-                self.plant_a_tree("countdown", room_info["tree_type"], plant_time, "", 1, end_time, room_info["id"])
+                self.plant_a_tree("countdown", room_info["tree_type"], plant_time, "", 1, _boost_by_ad, end_time,
+                                  room_info["id"])
             return None
 
         def create():
@@ -403,7 +436,7 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 自动植树刷金币
-    def auto_plant(self, _total_n):
+    def auto_plant(self, _total_n, _boost_by_ad):
         def run():
             Avalon.info("========== 当前任务: 自动植树 ==========", front="\n")
             plant_time = random.choice(list(range(30, 180, 5)))
@@ -411,7 +444,7 @@ class Forest:
             note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
             i = 1
             while i <= _total_n:
-                self.plant_a_tree("countdown", tree_type, plant_time, note, i)
+                self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad)
                 Avalon.info(f"将在 {plant_time} min后种植下一棵树")
                 time.sleep(plant_time * 60)
                 i += 1
@@ -422,7 +455,7 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 手动植树
-    def manually_plant(self):
+    def manually_plant(self, _boost_by_ad):
         def run():
             Avalon.info("========== 当前任务: 手动种植 ==========", front="\n")
             i = 1
@@ -445,7 +478,7 @@ class Forest:
                         Avalon.warning("日期输入有误，请重新输入")
                     else:
                         break
-                self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, end_time)
+                self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad, end_time)
                 i += 1
 
         try:
@@ -454,13 +487,15 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 种植一棵树
-    def plant_a_tree(self, _plant_mode, _tree_type, _plant_time, _note, _number, _end_time="", _room_id=-1):
+    def plant_a_tree(self, _plant_mode, _tree_type, _plant_time, _note, _number, _boost_by_ad, _end_time="",
+                     _room_id=-1):
         """
         :param _plant_mode: 种植模式(str) 接受 "countup"（正计时） 和 "countdown"（倒计时）
         :param _plant_time: 种植时长 以分钟为单位
         :param _tree_type: 树的种类 (int)
         :param _note: 植树备注(str)
         :param _number: 树的编号, 用于控制台输出(int)
+        :param _boost_by_ad: 是否通过模拟观看广告进行加速(bool)
         :param _end_time: 种植完成的时间(str) 格式 2021-01-01 12:00:00
         :param _room_id: 一起种模式下的房间ID(int)
         :return: (bool)
@@ -510,8 +545,9 @@ class Forest:
                 return False
             result = json.loads(res.text)
             if result["is_success"]:
-                count = result["tree_count"]
-                Avalon.info(f"第 {_number} 棵植树成功  数量: {count}")
+                Avalon.info(f"第 {_number} 棵植树成功  数量: {result['tree_count']}  id: {result['id']}")
+                if _boost_by_ad:
+                    self.boost_plant_by_rewarded_ad(_plant_id=result["id"])
                 return True
             else:
                 Avalon.error(f"第 {_number} 棵植树失败  响应码: {res.status_code}  {result}")
