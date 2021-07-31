@@ -215,13 +215,15 @@ class Forest:
             if not dead_plants:
                 Avalon.warning("当前plants.json中未发现枯树 已退出")
                 return True
+            Avalon.info(f"已找到枯树数据共计 {len(dead_plants)} 组")
             for tree in dead_plants:
                 Avalon.info("正在删除枯树...编号:%d  种类代码:%d  数量:%d棵" % (tree["id"], tree["tree_type_gid"], tree["tree_count"]))
                 if self.simulate_watch_ad() is False:
                     return False
                 else:
                     time.sleep(0.5)
-                    return delete_plants(tree["id"])
+                    delete_plants(tree["id"])
+            return True
 
         # 从plants.json中查找枯树的id
         def find_dead_plant_id():
@@ -319,7 +321,7 @@ class Forest:
                 leave(room_info["id"])
                 return None
             if str(Avalon.gets("是否有需要移除的成员 -> 1.是 2.否 : ")) == "1":
-                kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔")).split(" ")
+                kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔: ")).split(" ")
                 kick(room_info["id"], kick_uid_list)
             if str(Avalon.gets("是否开始 -> 1.是 2.否 : ")) == "1":
                 plant_time = int(room_info["target_duration"]) / 60
