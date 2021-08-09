@@ -297,40 +297,41 @@ class Forest:
     def create_room(self, _boost_by_ad):
         def run():
             Avalon.info("========== 当前任务: 创建房间 ==========", front="\n")
-            room_info = create()
-            if not len(room_info):
+            room_info_basic = create()
+            if not len(room_info_basic):
                 Avalon.error("未获取到服务器返回的房间信息! 当前任务退出")
                 return None
-            elif "exit" in room_info:
+            elif "exit" in room_info_basic:
                 return None
             try:
                 Avalon.info("接下来将显示房间内成员数, 当人数足够(大于1)时请按下 \"Ctrl + C\"")
                 i = 1
                 while i <= 100:
-                    members_info = get_members_info(room_info["id"])
+                    room_info_detail = get_room_info(room_info_basic["id"])
                     name_list = []
-                    for user in members_info["participants"]:
+                    for user in room_info_detail["participants"]:
                         name_list.append(f"{user['name']} {user['user_id']}")
-                    Avalon.info(f"循环次数: {i} 当前人数: {members_info['participants_count']} -> id: {name_list}", end="\r")
+                    Avalon.info(f"循环次数: {i} 当前人数: {room_info_detail['participants_count']} -> id: {name_list}",
+                                end="\r")
                     time.sleep(15)
                     i += 1
                 Avalon.warning("达到最大循环次数, 自动退出成员监视", front="\n")
             except KeyboardInterrupt:
                 Avalon.info("捕获 KeyboardInterrupt, 已退出成员监视 ", front="\n")
             if not Avalon.ask("是否保留该房间?"):
-                leave(room_info["id"])
+                leave(room_info_basic["id"])
                 return None
             if Avalon.ask("是否有需要移除的成员?"):
                 kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔: ")).split(" ")
-                kick(room_info["id"], kick_uid_list)
+                kick(room_info_basic["id"], kick_uid_list)
             if Avalon.ask("是否开始?"):
-                plant_time = int(room_info["target_duration"]) / 60
+                plant_time = int(room_info_basic["target_duration"]) / 60
                 end_time = datetime.strftime(
                     datetime.now() + timedelta(minutes=plant_time), "%Y-%m-%d %H:%M:%S")
-                start(room_info["id"], end_time)
+                start(room_info_basic["id"], end_time)
                 Avalon.info("开始发送种植信息...")
-                self.plant_a_tree("countdown", room_info["tree_type"], plant_time, "", 1, _boost_by_ad, end_time,
-                                  room_info["id"])
+                self.plant_a_tree("countdown", room_info_basic["tree_type"], plant_time, "", 1, _boost_by_ad, end_time,
+                                  room_info_basic["id"])
             return None
 
         def create():
@@ -363,12 +364,12 @@ class Forest:
                 Avalon.error(f"创建失败 原因: {err_info}")
                 return {}
 
-        def get_members_info(_room_id):
+        def get_room_info(_room_id):
             res = self.req.my_requests("get", f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}',
                                        {"is_birthdat_2019_client": True, "detail": True, "seekrua": "android_cn-4.41.0",
                                         "seekruid": self.user.uid}, {})
             if res.status_code != 200:
-                Avalon.error(f"获取成员信息可能失败  响应码: {res.status_code}")
+                Avalon.error(f"获取房间详细信息可能失败  响应码: {res.status_code}")
                 return None
             else:
                 result = json.loads(res.text)
