@@ -138,6 +138,27 @@ class Forest:
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
+    # %% 获取指定用户概述
+    def get_user_profile(self, _target_user_id):
+        """
+        获取指定用户的 Profile
+        :param _target_user_id: 目标用户的id
+        :return: (json)
+        """
+        try:
+            res = self.req.my_requests("get", f"https://c88fef96.forestapp.cc/api/v1/users/{_target_user_id}/profile",
+                                       {"seekrua": "android_cn-4.41.0", "seekruid": self.user.uid}, {})
+        except (ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout,
+                requests.exceptions.SSLError):
+            return {}
+        except Exception:
+            return {}
+        else:
+            if res.status_code == 200:
+                return json.loads(res.text)
+            else:
+                return {}
+
     # %% 模拟观看广告操作
     def simulate_watch_ad(self):
         """
@@ -310,7 +331,14 @@ class Forest:
                     room_info_detail = get_room_info(room_info_basic["id"])
                     name_list = []
                     for user in room_info_detail["participants"]:
-                        name_list.append(f"{user['name']} {user['user_id']}")
+                        user_info = f"{user['name']} {user['user_id']}"
+                        user_profile = self.get_user_profile(user["user_id"])
+                        if len(user_profile) > 0:
+                            success_rate = 100 * user_profile["health_count"] / (
+                                    user_profile["health_count"] + user_profile["death_count"])
+                            success_rate = round(success_rate, 2)
+                            user_info += f" {success_rate}%"
+                        name_list.append(user_info)
                     Avalon.info(f"循环次数: {i} 当前人数: {room_info_detail['participants_count']} -> id: {name_list}",
                                 end="\r")
                     time.sleep(15)
