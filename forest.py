@@ -317,13 +317,13 @@ class Forest:
                 Avalon.warning("达到最大循环次数, 自动退出成员监视", front="\n")
             except KeyboardInterrupt:
                 Avalon.info("捕获 KeyboardInterrupt, 已退出成员监视 ", front="\n")
-            if str(Avalon.gets("是否保留该房间 -> 1.是 2.否 : ")) == "2":
+            if not Avalon.ask("是否保留该房间?"):
                 leave(room_info["id"])
                 return None
-            if str(Avalon.gets("是否有需要移除的成员 -> 1.是 2.否 : ")) == "1":
+            if Avalon.ask("是否有需要移除的成员?"):
                 kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔: ")).split(" ")
                 kick(room_info["id"], kick_uid_list)
-            if str(Avalon.gets("是否开始 -> 1.是 2.否 : ")) == "1":
+            if Avalon.ask("是否开始?"):
                 plant_time = int(room_info["target_duration"]) / 60
                 end_time = datetime.strftime(
                     datetime.now() + timedelta(minutes=plant_time), "%Y-%m-%d %H:%M:%S")
