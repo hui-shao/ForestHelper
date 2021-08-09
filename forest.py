@@ -356,10 +356,10 @@ class Forest:
                 plant_time = int(room_info_basic["target_duration"]) / 60
                 end_time = datetime.strftime(
                     datetime.now() + timedelta(minutes=plant_time), "%Y-%m-%d %H:%M:%S")
-                start(room_info_basic["id"], end_time)
-                Avalon.info("开始发送种植信息...")
-                self.plant_a_tree("countdown", room_info_basic["tree_type"], plant_time, "", 1, _boost_by_ad, end_time,
-                                  room_info_basic["id"])
+                if start(room_info_basic["id"], end_time):
+                    Avalon.info("开始发送种植信息...")
+                    self.plant_a_tree("countdown", room_info_basic["tree_type"], plant_time, "", 1, _boost_by_ad,
+                                      end_time, room_info_basic["id"])
             return None
 
         def create():
