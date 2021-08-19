@@ -467,9 +467,31 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 自动植树刷金币
-    def auto_plant(self, _total_n, _boost_by_ad):
+    def auto_plant(self, _total_n, _boost_by_ad, _by_time_frame):
         def run():
             Avalon.info("========== 当前任务: 自动植树 ==========", front="\n")
+            if _by_time_frame:
+                mode_1()
+            else:
+                mode_2()
+
+        def mode_1():
+            i = 1
+            endtime_list = gen_list()
+            while i <= len(endtime_list):
+                tree_type = random.randint(1, 80)
+                plant_time = random.choice(list(range(120, 185, 5)))  # 随机选择范围在 [120,185) 之间的 5 的倍数作为时长
+                note = f"{tree_type}"
+                end_time = endtime_list[i - 1]
+                print("\n")
+                self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad, end_time)
+                sleep_time = random.randint(2, 10) + random.random()
+                sleep_time = round(sleep_time, 2)
+                Avalon.info(f"Wait {sleep_time} seconds")
+                time.sleep(sleep_time)
+                i += 1
+
+        def mode_2():
             plant_time = random.choice(list(range(30, 180, 5)))
             tree_type = str(random.randint(1, 110))
             note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
@@ -479,6 +501,27 @@ class Forest:
                 Avalon.info(f"将在 {plant_time} min后种植下一棵树")
                 time.sleep(plant_time * 60)
                 i += 1
+
+        def gen_list():
+            time_list = []
+            target_time = datetime.strptime(Avalon.gets("输入起始时间 (格式为 2021-01-01 00:00:00) : "), "%Y-%m-%d %H:%M:%S")
+            end_time = datetime.strptime(Avalon.gets("输入结束时间 (格式为 2021-12-31 00:00:00) : "), "%Y-%m-%d %H:%M:%S")
+            max_tree_num = abs((end_time - target_time).days * 12)  # 每天最多种 12 棵 2h 的树木
+            for i in range(0, max_tree_num + 10, 1):
+                # 以下: 以三小时以上的间隔来生成植树完成的时间 (因为后方植树时间设置在 120min-180min 之间)
+                target_time = target_time + timedelta(minutes=random.randint(185, 210)) + timedelta(
+                    seconds=random.randint(1, 59))
+                # 以下: 控制植树完成时间在 9:00 ~ 23:45 之间
+                while target_time.hour > 23 and target_time.minute > 45:
+                    target_time = target_time + timedelta(hours=9)
+                while target_time.hour < 9:
+                    target_time = target_time + timedelta(minutes=random.randint(25, 60))
+                if (time.mktime(end_time.timetuple()) - time.mktime(
+                        target_time.timetuple())) < 0:  # 通过比较时间戳以控制植树完成时间在截止时间前面
+                    break
+                target_time_s = datetime.strftime(target_time, "%Y-%m-%d %H:%M:%S")
+                time_list.append(target_time_s)
+            return time_list
 
         try:
             run()

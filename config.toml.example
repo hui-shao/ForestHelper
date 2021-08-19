@@ -18,7 +18,8 @@ enable = false
 # 自动植树(刷金币)
 [auto_plant]
 enable = false
-number = 100
+by_time_frame = false
+number = 100  # 仅在 by_time_frame 关闭时有效
 
 # 手动植树
 [manually_plant]
