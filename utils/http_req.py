@@ -1,8 +1,8 @@
 import json
+from urllib import parse
 
 import requests
 from requests.cookies import RequestsCookieJar
-from urllib import parse
 
 
 # 自定义的HttpRequest模块

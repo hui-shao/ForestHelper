@@ -9,8 +9,9 @@ from datetime import datetime, timedelta
 
 import requests
 
-from avalon import Avalon
-from http_req import HttpReq
+# 该模块的运行目录仍然为 main.py 所在目录
+from utils.avalon import Avalon
+from utils.http_req import HttpReq
 
 
 class Forest:
@@ -72,7 +73,7 @@ class Forest:
                 Avalon.info("已启用强制更新 plants.json")
                 get_from_server()
             else:
-                if os.path.exists(f"UserFiles/{file_name}"):
+                if os.path.exists(f"_user_files/{file_name}"):
                     Avalon.info(f"发现本地已存在 {file_name} , 进行读取...")
                     get_from_local()
                 else:
@@ -80,7 +81,7 @@ class Forest:
                     get_from_server()
 
         def get_from_local():
-            with open(f"UserFiles/{file_name}", "r", encoding="utf-8") as f:
+            with open(f"_user_files/{file_name}", "r", encoding="utf-8") as f:
                 self.plants = json.loads(f.read())
             Avalon.info(f"从本地获取 已种植列表 ({file_name}) 成功")
 
@@ -90,7 +91,7 @@ class Forest:
             if r.status_code == 200:
                 self.plants = json.loads(r.text)
                 Avalon.info(f"从服务器端获取 已种植列表 ({file_name}) 成功")
-                with open(f"UserFiles/{file_name}", "w", encoding="utf-8") as f:
+                with open(f"_user_files/{file_name}", "w", encoding="utf-8") as f:
                     f.write(r.text)
                 return True
             else:
@@ -108,7 +109,7 @@ class Forest:
 
         def run():
             Avalon.info(f"正在获取树木种类列表 ({file_name})", front="\n")
-            if os.path.exists(f"UserFiles/{file_name}"):
+            if os.path.exists(f"_user_files/{file_name}"):
                 Avalon.info(f"发现本地已存在 {file_name} , 进行读取...")
                 get_from_local()
             else:
@@ -116,7 +117,7 @@ class Forest:
                 get_from_server()
 
         def get_from_local():
-            with open(f"UserFiles/{file_name}", "r", encoding="utf-8") as f:
+            with open(f"_user_files/{file_name}", "r", encoding="utf-8") as f:
                 self.coin_tree_types = json.loads(f.read())
             Avalon.info(f"从本地获取 已种植列表 ({file_name}) 成功")
 
@@ -126,7 +127,7 @@ class Forest:
             if r.status_code == 200:
                 self.coin_tree_types = json.loads(r.text)
                 Avalon.info(f"从服务器端获取 树木种类列表 ({file_name}) 成功")
-                with open(f"UserFiles/{file_name}", "w", encoding="utf-8") as f:
+                with open(f"_user_files/{file_name}", "w", encoding="utf-8") as f:
                     f.write(r.text)
                 return True
             else:

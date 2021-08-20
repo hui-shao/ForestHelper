@@ -9,15 +9,15 @@ import sys
 
 import toml
 
-from avalon import Avalon
-from forest import Forest
-from user_info import User
+from utils.avalon import Avalon
+from utils.forest import Forest
+from utils.user import User
 
 
 # %% 建立用于保存用户文件的目录
 def makedir():
-    if not os.path.exists("UserFiles"):
-        os.mkdir("UserFiles")
+    if not os.path.exists("_user_files"):
+        os.mkdir("_user_files")
     else:
         pass
 
@@ -69,9 +69,9 @@ def logout():
         user.remember_token = ""
         write_config()
     try:
-        shutil.rmtree("UserFiles")
+        shutil.rmtree("_user_files")
     except IOError:
-        Avalon.warning("删除UserFiles目录失败, 在切换用户前务必手动删除！")
+        Avalon.warning("删除_user_files目录失败, 在切换用户前务必手动删除！")
 
 
 def login():

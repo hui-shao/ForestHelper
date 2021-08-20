@@ -227,5 +227,5 @@ dmypy.json
 cython_debug/
 
 #Custmosized
-UserFiles/
+_user_files
 /config.toml
