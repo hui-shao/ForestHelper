@@ -469,7 +469,7 @@ class Forest:
     # %% 自动植树刷金币
     def auto_plant(self, _total_n, _boost_by_ad, _by_time_frame):
         def run():
-            Avalon.info("========== 当前任务: 自动植树 ==========", front="\n")
+            Avalon.info("========== 当前任务: 自动植树 ==========\n", front="\n")
             if _by_time_frame:
                 mode_1()
             else:
