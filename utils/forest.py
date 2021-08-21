@@ -232,7 +232,7 @@ class Forest:
         """
 
         def run():
-            Avalon.info("========== 当前任务: 删除枯树 ==========", front="\n")
+            Avalon.info("========== 当前任务: 删除枯树 ==========\n", front="\n")
             dead_plants = find_dead_plant_id()
             if not dead_plants:
                 Avalon.warning("当前plants.json中未发现枯树 已退出")
@@ -318,7 +318,7 @@ class Forest:
     # %% 创建房间(一起种)
     def create_room(self, _boost_by_ad):
         def run():
-            Avalon.info("========== 当前任务: 创建房间 ==========", front="\n")
+            Avalon.info("========== 当前任务: 创建房间 ==========\n", front="\n\n")
             room_info_basic = create()
             if not len(room_info_basic):
                 Avalon.error("未获取到服务器返回的房间信息! 当前任务退出")
@@ -470,7 +470,7 @@ class Forest:
     # %% 自动植树刷金币
     def auto_plant(self, _total_n, _boost_by_ad, _by_time_frame):
         def run():
-            Avalon.info("========== 当前任务: 自动植树 ==========\n", front="\n")
+            Avalon.info("========== 当前任务: 自动植树 ==========\n", front="\n\n")
             if _by_time_frame:
                 mode_1()
             else:
@@ -479,7 +479,9 @@ class Forest:
         def mode_1():
             i = 1
             endtime_list = gen_list()
-            while i <= len(endtime_list):
+            tree_total = len(endtime_list)
+            Avalon.info("共需种植 %d 棵树" % tree_total)
+            while i <= tree_total:
                 tree_type = random.randint(1, 80)
                 plant_time = random.choice(list(range(120, 185, 5)))  # 随机选择范围在 [120,185) 之间的 5 的倍数作为时长
                 note = f"{tree_type}"
@@ -532,10 +534,10 @@ class Forest:
     # %% 手动植树
     def manually_plant(self, _boost_by_ad):
         def run():
-            Avalon.info("========== 当前任务: 手动种植 ==========", front="\n")
+            Avalon.info("========== 当前任务: 手动种植 ==========\n", front="\n\n")
             i = 1
             while 1:
-                tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): ", front="\n"))
+                tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): "))
                 if tree_type == -1:
                     break
                 plant_mode = "countup" if str(Avalon.gets("选择种植模式 -> 1.倒计时 2.正计时 : ")) == "2" else "countdown"
