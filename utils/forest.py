@@ -507,8 +507,16 @@ class Forest:
 
         def gen_list():
             time_list = []
-            target_time = datetime.strptime(Avalon.gets("输入起始时间 (格式为 2021-01-01 00:00:00) : "), "%Y-%m-%d %H:%M:%S")
-            end_time = datetime.strptime(Avalon.gets("输入结束时间 (格式为 2021-12-31 00:00:00) : "), "%Y-%m-%d %H:%M:%S")
+            while 1:
+                try:
+                    target_time = datetime.strptime(Avalon.gets("输入起始时间 (格式为 2021-01-01 00:00:00) : "),
+                                                    "%Y-%m-%d %H:%M:%S")
+                    end_time = datetime.strptime(Avalon.gets("输入结束时间 (格式为 2021-12-31 00:00:00) : "),
+                                                 "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    Avalon.warning("日期输入有误，请重新输入")
+                else:
+                    break
             max_tree_num = abs((end_time - target_time).days * 12)  # 每天最多种 12 棵 2h 的树木
             for i in range(0, max_tree_num + 10, 1):
                 # 以下: 以三小时以上的间隔来生成植树完成的时间 (因为后方植树时间设置在 120min-180min 之间)
