@@ -326,26 +326,7 @@ class Forest:
             elif "exit" in room_info_basic:
                 return None
             try:
-                Avalon.info("接下来将显示房间内成员数, 当人数足够(大于1)时请按下 \"Ctrl + C\"")
-                i = 1
-                while i <= 100:
-                    room_info_detail = get_room_info(room_info_basic["id"])
-                    name_list = []
-                    for user in room_info_detail["participants"]:
-                        user_info = f"{user['name']} {user['user_id']}"
-                        user_profile = self.get_user_profile(user["user_id"])
-                        if len(user_profile) > 0:
-                            success_rate = (100 * user_profile["health_count"] / (
-                                    user_profile["health_count"] + user_profile["death_count"])).__round__(2)
-                            days, m = divmod(user_profile["total_minute"], (60 * 24))
-                            hours, minutes = divmod(m, 60)
-                            user_info += f" {success_rate}% {days}天{hours}时{minutes}分"
-                        name_list.append(user_info)
-                    Avalon.info(f"循环次数: {i} 当前人数: {room_info_detail['participants_count']} -> id: {name_list}",
-                                end="\n")
-                    time.sleep(15)
-                    i += 1
-                Avalon.warning("达到最大循环次数, 自动退出成员监视", front="\n")
+                show_member_info(room_info_basic["id"])
             except KeyboardInterrupt:
                 Avalon.info("捕获 KeyboardInterrupt, 已退出成员监视 ", front="\n")
             if not Avalon.ask("是否保留该房间?"):
@@ -393,6 +374,28 @@ class Forest:
             except Exception as err_info:
                 Avalon.error(f"创建失败 原因: {err_info}")
                 return {}
+
+        def show_member_info(_room_id):
+            Avalon.info("接下来将显示房间内成员数, 当人数足够(大于1)时请按下 \"Ctrl + C\"")
+            i = 1
+            while i <= 100:
+                room_info_detail = get_room_info(_room_id)
+                name_list = []
+                for user in room_info_detail["participants"]:
+                    user_info = f"{user['name']} {user['user_id']}"
+                    user_profile = self.get_user_profile(user["user_id"])
+                    if len(user_profile) > 0:
+                        success_rate = (100 * user_profile["health_count"] / (
+                                user_profile["health_count"] + user_profile["death_count"])).__round__(2)
+                        days, m = divmod(user_profile["total_minute"], (60 * 24))
+                        hours, minutes = divmod(m, 60)
+                        user_info += f" {success_rate}% {days}天{hours}时{minutes}分"
+                    name_list.append(user_info)
+                Avalon.info(f"循环次数: {i} 当前人数: {room_info_detail['participants_count']} -> id: {name_list}",
+                            end="\n")
+                time.sleep(15)
+                i += 1
+            Avalon.warning("达到最大循环次数, 自动退出成员监视", front="\n")
 
         def get_room_info(_room_id):
             res = self.req.my_requests("get", f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}',
