@@ -24,7 +24,7 @@ def makedir():
 
 # %% 读取配置文件
 def read_config():
-    Avalon.info("读取配置文件中……")
+    Avalon.info("读取配置文件中……", front="\n")
     global config, username, passwd, uid, remember_token
     config_file = sys.argv[1] if len(sys.argv) > 1 else "config.toml"
     try:
