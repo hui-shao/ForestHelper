@@ -140,7 +140,7 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 获取指定用户概述
-    def get_user_profile(self, _target_user_id):
+    def get_user_profile(self, _target_user_id: int):
         """
         获取指定用户的 Profile
         :param _target_user_id: 目标用户的id
@@ -286,7 +286,7 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 模拟观看广告加速种植
-    def boost_plant_by_rewarded_ad(self, _plant_id):
+    def boost_plant_by_rewarded_ad(self, _plant_id: int):
         def run():
             Avalon.info("正在尝试获取双倍金币...")
             try:
@@ -316,7 +316,7 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出")
 
     # %% 创建房间(一起种)
-    def create_room(self, _boost_by_ad):
+    def create_room(self, _boost_by_ad: bool):
         def run():
             Avalon.info("========== 当前任务: 创建房间 ==========\n", front="\n\n")
             room_info_basic = create()
@@ -336,7 +336,7 @@ class Forest:
                 kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔: ")).split(" ")
                 kick(room_info_basic["id"], kick_uid_list)
             if Avalon.ask("是否开始?"):
-                plant_time = int(room_info_basic["target_duration"]) / 60
+                plant_time = int(room_info_basic["target_duration"] / 60)
                 end_time = datetime.strftime(
                     datetime.now() + timedelta(minutes=plant_time), "%Y-%m-%d %H:%M:%S")
                 if start(room_info_basic["id"], end_time):
@@ -472,7 +472,7 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 自动植树刷金币
-    def auto_plant(self, _total_n, _boost_by_ad, _by_time_frame):
+    def auto_plant(self, _total_n: int, _boost_by_ad: bool, _by_time_frame: bool):
         def run():
             Avalon.info("========== 当前任务: 自动植树 ==========\n", front="\n\n")
             if _by_time_frame:
@@ -500,7 +500,7 @@ class Forest:
 
         def mode_2():
             plant_time = random.choice(list(range(30, 180, 5)))
-            tree_type = str(random.randint(1, 110))
+            tree_type = random.randint(1, 81)
             note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
             i = 1
             while i <= _total_n:
@@ -544,7 +544,7 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 手动植树
-    def manually_plant(self, _boost_by_ad):
+    def manually_plant(self, _boost_by_ad: bool):
         def run():
             Avalon.info("========== 当前任务: 手动种植 ==========", front="\n\n")
             i = 1
@@ -576,8 +576,9 @@ class Forest:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
 
     # %% 种植一棵树
-    def plant_a_tree(self, _plant_mode, _tree_type, _plant_time, _note, _number, _boost_by_ad, _end_time="",
-                     _room_id=-1):
+    def plant_a_tree(self, _plant_mode: str, _tree_type: int, _plant_time: int, _note: str, _number: int,
+                     _boost_by_ad: bool, _end_time: str = "",
+                     _room_id: int = -1) -> bool:
         """
         :param _plant_mode: 种植模式(str) 接受 "countup"（正计时） 和 "countdown"（倒计时）
         :param _plant_time: 种植时长 以分钟为单位
