@@ -337,8 +337,7 @@ class Forest:
                 kick(room_info_basic["id"], kick_uid_list)
             if Avalon.ask("是否开始?"):
                 plant_time = int(room_info_basic["target_duration"] / 60)
-                end_time = datetime.strftime(
-                    datetime.now() + timedelta(minutes=plant_time), "%Y-%m-%d %H:%M:%S")
+                end_time = datetime.now() + timedelta(minutes=plant_time)
                 if start(room_info_basic["id"], end_time):
                     Avalon.info("开始发送种植信息...")
                     self.plant_a_tree("countdown", room_info_basic["tree_type"], plant_time, "", 1, _boost_by_ad,
@@ -534,8 +533,7 @@ class Forest:
                 if (time.mktime(end_time.timetuple()) - time.mktime(
                         target_time.timetuple())) < 0:  # 通过比较时间戳以控制植树完成时间在截止时间前面
                     break
-                target_time_s = datetime.strftime(target_time, "%Y-%m-%d %H:%M:%S")
-                time_list.append(target_time_s)
+                time_list.append(target_time)
             return time_list
 
         try:
@@ -558,16 +556,16 @@ class Forest:
                     plant_time = int(plant_time / 5) * 5
                 note = str(Avalon.gets("请输入植树备注(可选): "))
                 while 1:
-                    end_time = str(Avalon.gets("请输入植树完成时的时间. 格式为 \'20210724 173005\' (可选): "))
-                    if not len(end_time):
+                    end_time_s = str(Avalon.gets("请输入植树完成时的时间. 格式为 \'20210724 173005\' (可选): "))
+                    if not len(end_time_s):
                         break  # 如果没有指定end_time, 则跳出循环, 防止被当成异常而被捕获
                     try:
-                        datetime.strptime(end_time, "%Y%m%d %H%M%S")  # 尝试将str转换为datetime, 以检查格式是否错误
+                        end_time = datetime.strptime(end_time_s, "%Y%m%d %H%M%S")  # 尝试将str转换为datetime, 以检查格式是否错误
                     except ValueError:
                         Avalon.warning("日期输入有误，请重新输入")
                     else:
+                        self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad, end_time)
                         break
-                self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad, end_time)
                 i += 1
 
         try:
@@ -577,7 +575,7 @@ class Forest:
 
     # %% 种植一棵树
     def plant_a_tree(self, _plant_mode: str, _tree_type: int, _plant_time: int, _note: str, _number: int,
-                     _boost_by_ad: bool, _end_time: str = "",
+                     _boost_by_ad: bool, _end_time: datetime = datetime.now(),
                      _room_id: int = -1) -> bool:
         """
         :param _plant_mode: 种植模式(str) 接受 "countup"（正计时） 和 "countdown"（倒计时）
@@ -586,16 +584,12 @@ class Forest:
         :param _note: 植树备注(str)
         :param _number: 树的编号, 用于控制台输出(int)
         :param _boost_by_ad: 是否通过模拟观看广告进行加速(bool)
-        :param _end_time: 种植完成的时间(str) 格式 2021-01-01 12:00:00
+        :param _end_time: 种植完成的时间(datetime)
         :param _room_id: 一起种模式下的房间ID(int)
         :return: (bool)
         """
-        if len(_end_time):
-            end_time = datetime.strptime(_end_time, "%Y-%m-%d %H:%M:%S") - timedelta(hours=8)  # 注: 减去8小时是为了换算时区, 下同
-            start_time = end_time - timedelta(minutes=_plant_time)
-        else:
-            end_time = datetime.now() - timedelta(hours=8)
-            start_time = (end_time - timedelta(minutes=_plant_time))
+        end_time = _end_time - timedelta(hours=8)  # 注: 减去8小时是为了换算时区, 下同
+        start_time = end_time - timedelta(minutes=_plant_time)
         trees_list = []  # 储存植树信息, 用于data的构造
         tree_count = int(_plant_time / 30)
         if tree_count > 4:  # forest规定最多只能种4棵树，最少1棵树
