@@ -513,10 +513,10 @@ class Forest:
             time_list = []
             while 1:
                 try:
-                    target_time = datetime.strptime(Avalon.gets("输入起始时间 (格式为 2021-01-01 00:00:00) : "),
-                                                    "%Y-%m-%d %H:%M:%S")
-                    end_time = datetime.strptime(Avalon.gets("输入结束时间 (格式为 2021-12-31 00:00:00) : "),
-                                                 "%Y-%m-%d %H:%M:%S")
+                    target_time = datetime.strptime(Avalon.gets("输入起始时间 (格式为 \'20210101 000000\') : "),
+                                                    "%Y%m%d %H%M%S")
+                    end_time = datetime.strptime(Avalon.gets("输入结束时间 (格式为 \'20211231 235959\') : "),
+                                                 "%Y%m%d %H%M%S")
                 except ValueError:
                     Avalon.warning("日期输入有误，请重新输入")
                 else:
@@ -558,11 +558,11 @@ class Forest:
                     plant_time = int(plant_time / 5) * 5
                 note = str(Avalon.gets("请输入植树备注(可选): "))
                 while 1:
-                    end_time = str(Avalon.gets("请输入植树完成时的时间. 格式为 \'2021-07-24 17:30:05\' (可选): "))
+                    end_time = str(Avalon.gets("请输入植树完成时的时间. 格式为 \'20210724 173005\' (可选): "))
                     if not len(end_time):
                         break  # 如果没有指定end_time, 则跳出循环, 防止被当成异常而被捕获
                     try:
-                        datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")  # 尝试将str转换为datetime, 以检查格式是否错误
+                        datetime.strptime(end_time, "%Y%m%d %H%M%S")  # 尝试将str转换为datetime, 以检查格式是否错误
                     except ValueError:
                         Avalon.warning("日期输入有误，请重新输入")
                     else:
