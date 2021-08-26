@@ -554,15 +554,17 @@ class Forest:
                 note = str(Avalon.gets("请输入植树备注(可选): "))
                 while 1:
                     end_time_s = str(Avalon.gets("请输入植树完成时的时间. 格式为 \'20210724 173005\' (可选): "))
-                    if not len(end_time_s):
-                        break  # 如果没有指定end_time, 则跳出循环, 防止被当成异常而被捕获
-                    try:
-                        end_time = datetime.strptime(end_time_s, "%Y%m%d %H%M%S")  # 尝试将str转换为datetime, 以检查格式是否错误
-                    except ValueError:
-                        Avalon.warning("日期输入有误，请重新输入")
-                        continue
-                    else:
-                        self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad, end_time)
+                    if len(end_time_s):
+                        try:
+                            end_time = datetime.strptime(end_time_s, "%Y%m%d %H%M%S")  # 尝试将str转换为datetime, 以检查格式是否错误
+                        except ValueError:
+                            Avalon.warning("日期输入有误，请重新输入")
+                            continue
+                        else:
+                            self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad, end_time)
+                            break
+                    else:  # 如果没有指定end_time, 则不传 end_time 参数 (默认取当前时间), 并退出循环
+                        self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad)
                         break
                 i += 1
 
