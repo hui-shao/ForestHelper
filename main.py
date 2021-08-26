@@ -44,6 +44,7 @@ def read_config():
         passwd = config["user"]["password"]
         uid = config["user"]["uid"]
         remember_token = config["user"]["remember_token"]
+        Avalon.info("配置文件读取成功")
         return True
 
 
@@ -81,6 +82,8 @@ def login():
             user.uid = login_info["uid"]
             user.remember_token = login_info["remember_token"]
             write_config()
+    else:
+        Avalon.info(f"当前用户信息 -> {user.username} ({user.uid})", front="\n")
 
 
 def run():
