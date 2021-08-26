@@ -333,8 +333,7 @@ class Forest:
                 leave(room_info_basic["id"])
                 return None
             if Avalon.ask("是否有需要移除的成员?"):
-                kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔: ")).split(" ")
-                kick(room_info_basic["id"], kick_uid_list)
+                kick(room_info_basic["id"])
             if Avalon.ask("是否开始?"):
                 plant_time = int(room_info_basic["target_duration"] / 60)
                 end_time = datetime.now() + timedelta(minutes=plant_time)
@@ -407,11 +406,9 @@ class Forest:
                 result = json.loads(res.text)
                 return result
 
-        def kick(_room_id, _uid_list):
-            if not len(_uid_list):
-                Avalon.warning("未接收到传入的uid")
-                return False
-            for uid_str in _uid_list:
+        def kick(_room_id):
+            kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔: ")).split(" ")
+            for uid_str in kick_uid_list:
                 try:
                     res = self.req.my_requests("put", f"https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/kick",
                                                {"user_id": int(uid_str), "seekrua": "android_cn-4.41.0",
@@ -563,6 +560,7 @@ class Forest:
                         end_time = datetime.strptime(end_time_s, "%Y%m%d %H%M%S")  # 尝试将str转换为datetime, 以检查格式是否错误
                     except ValueError:
                         Avalon.warning("日期输入有误，请重新输入")
+                        continue
                     else:
                         self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad, end_time)
                         break
