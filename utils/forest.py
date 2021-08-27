@@ -9,9 +9,13 @@ from datetime import datetime, timedelta
 
 import requests
 
-# 该模块的运行目录仍然为 main.py 所在目录
-from utils.avalon import Avalon
-from utils.http_req import HttpReq
+# 在 main.py 调用该模块时, 该模块的运行目录仍然为 main.py 所在目录
+try:
+    from utils.avalon import Avalon
+    from utils.http_req import HttpReq
+except ModuleNotFoundError:
+    from avalon import Avalon
+    from http_req import HttpReq
 
 
 class Forest:
@@ -642,3 +646,80 @@ class Forest:
         except Exception as err_info:
             Avalon.error(f"第 {_number} 棵植树失败  其他错误: {err_info}")
             return False
+
+
+if __name__ == '__main__':
+    class _UserInfo:
+        def __init__(self, _username, _passwd, _uid, _remember_token):
+            self.username = _username
+            self.passwd = _passwd
+            self.uid = _uid
+            self.remember_token = _remember_token
+
+
+    def _show_menu():
+        menu = """
+        ====================== 菜单 ======================
+        
+          0. 退出程序
+          1. 获取已种植树木列表 (plants.json)
+          2. 获取已解锁树木列表 (coin_tree_types.json)
+          3. 获取指定用户的 Profile
+          4. 免金币删除枯树 (模拟观看广告)
+          5. 创建房间 (一起种功能)
+          6. 自动植树
+          7. 手动植树
+        
+        =================================================
+        """
+        Avalon.info(menu, front="\n")
+
+
+    def _get_choice():
+        while 1:
+            try:
+                choice = int(Avalon.gets("输入你的选择: ", front="\n"))
+            except ValueError:
+                Avalon.warning("输入无效")
+            else:
+                break
+        return choice
+
+
+    def _do(_n):
+        if _n <= 0:
+            exit(0)
+        elif _n == 1:
+            F.get_plants(_force_update=True)
+        elif _n == 2:
+            F.get_coin_tree_types()
+        elif _n == 3:
+            F.get_user_profile(int(Avalon.gets("输入目标用户的uid: ")))
+        elif _n == 4:
+            F.remove_plants_by_rewarded_ad()
+        elif _n == 5:
+            F.create_room(Avalon.ask("是否启用双倍金币"))
+        elif _n == 6:
+            F.auto_plant(int(Avalon.gets("自动种植总数 (仅在\'不按时间区间\'时有效)")), Avalon.ask("是否启用双倍金币"), Avalon.ask("是否按照时间区间"))
+        elif _n == 7:
+            F.manually_plant(Avalon.ask("是否启用双倍金币"))
+        else:
+            Avalon.warning("选项不存在!")
+            time.sleep(2)
+
+
+    os.chdir("../")
+    username = Avalon.gets("请输入用户名: ", front="\n")
+    passwd = Avalon.gets("请输入密码: ")
+    F = Forest(_UserInfo(username, passwd, 0, ""))
+    F.login()
+    while True:
+        try:
+            _show_menu()
+            _do(_get_choice())
+            time.sleep(1.5)
+        except KeyboardInterrupt:
+            Avalon.warning("用户中断操作, 程序退出")
+            exit(0)
+        except Exception as err:
+            Avalon.error(err)
