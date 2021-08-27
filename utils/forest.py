@@ -649,6 +649,10 @@ class Forest:
 
 
 if __name__ == '__main__':
+    import sys
+    import traceback
+
+
     class _UserInfo:
         def __init__(self, _username, _passwd, _uid, _remember_token):
             self.username = _username
@@ -688,7 +692,7 @@ if __name__ == '__main__':
 
     def _do(_n):
         if _n <= 0:
-            exit(0)
+            sys.exit(0)
         elif _n == 1:
             F.get_plants(_force_update=True)
         elif _n == 2:
@@ -708,6 +712,7 @@ if __name__ == '__main__':
             time.sleep(2)
 
 
+    os.chdir(sys.path[0])
     os.chdir("../")
     username = Avalon.gets("请输入用户名: ", front="\n")
     passwd = Avalon.gets("请输入密码: ")
@@ -720,6 +725,6 @@ if __name__ == '__main__':
             time.sleep(1.5)
         except KeyboardInterrupt:
             Avalon.warning("用户中断操作, 程序退出")
-            exit(0)
-        except Exception as err:
-            Avalon.error(err)
+            sys.exit(0)
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
