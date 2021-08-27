@@ -5,6 +5,7 @@ import json
 import os
 import random
 import time
+import traceback
 from datetime import datetime, timedelta
 
 import requests
@@ -55,6 +56,9 @@ class Forest:
 
     # %% 登出
     def logout(self):
+        """
+        :return: 若登出成功则返回 True
+        """
         Avalon.info("正在登出...", front="\n")
         url = f"https://c88fef96.forestapp.cc/api/v1/sessions/signout?seekrua=android_cn-4.41.0&seekruid={self.user.uid}"
         r = self.req.my_requests("delete", url, {}, {})
@@ -69,25 +73,34 @@ class Forest:
 
     # %% 获取树种列表  树木的gid, 名称, 哪些已解锁
     def get_plants(self, _force_update=False):
+        """
+        :param _force_update: 若为 True 则强制从服务器获取并覆盖本地文件
+        :return: 若获取成功则返回 True
+        """
         file_name = "plants.json"
 
         def run():
-            Avalon.info(f"正在获取已种植列表 ({file_name})")
+            Avalon.info(f"正在获取已种植列表 ({file_name})", front="\n")
             if _force_update:
                 Avalon.info("已启用强制更新 plants.json")
-                get_from_server()
+                return get_from_server()
             else:
                 if os.path.exists(f"_user_files/{file_name}"):
                     Avalon.info(f"发现本地已存在 {file_name} , 进行读取...")
-                    get_from_local()
+                    return get_from_local()
                 else:
                     Avalon.warning(f"在本地未发现 {file_name} , 尝试从服务器端获取...")
-                    get_from_server()
+                    return get_from_server()
 
         def get_from_local():
             with open(f"_user_files/{file_name}", "r", encoding="utf-8") as f:
                 self.plants = json.loads(f.read())
-            Avalon.info(f"从本地获取 已种植列表 ({file_name}) 成功")
+            if len(self.plants):
+                Avalon.info(f"从本地获取 已种植列表 ({file_name}) 成功")
+                return True
+            else:
+                Avalon.error(f"从本地获取 已种植列表 {file_name} 失败")
+                return False
 
         def get_from_server():
             url = f"https://c88fef96.forestapp.cc/api/v1/plants?seekrua=android_cn-4.41.0&seekruid={self.user.uid}"
@@ -99,31 +112,48 @@ class Forest:
                     f.write(r.text)
                 return True
             else:
-                Avalon.error(f"从服务端获取 {file_name} 可能失败")
+                Avalon.error(f"从服务端获取 已种植列表 {file_name} 可能失败")
                 return False
 
         try:
-            run()
+            return run()
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            return False
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
+            return False
 
     # %% 获取树木种类列表
-    def get_coin_tree_types(self):
+    def get_coin_tree_types(self, _force_update=False):
+        """
+        :param _force_update: 若为 True 则强制从服务器获取并覆盖本地文件
+        :return: 若获取成功则返回 True
+        """
         file_name = "coin_tree_types.json"
 
         def run():
             Avalon.info(f"正在获取树木种类列表 ({file_name})", front="\n")
-            if os.path.exists(f"_user_files/{file_name}"):
-                Avalon.info(f"发现本地已存在 {file_name} , 进行读取...")
-                get_from_local()
+            if _force_update:
+                Avalon.info("已启用强制更新 plants.json")
+                return get_from_server()
             else:
-                Avalon.warning(f"在本地未发现 {file_name} , 尝试从服务器端获取...")
-                get_from_server()
+                if os.path.exists(f"_user_files/{file_name}"):
+                    Avalon.info(f"发现本地已存在 {file_name} , 进行读取...")
+                    return get_from_local()
+                else:
+                    Avalon.warning(f"在本地未发现 {file_name} , 尝试从服务器端获取...")
+                    return get_from_server()
 
         def get_from_local():
             with open(f"_user_files/{file_name}", "r", encoding="utf-8") as f:
                 self.coin_tree_types = json.loads(f.read())
-            Avalon.info(f"从本地获取 已种植列表 ({file_name}) 成功")
+            if len(self.coin_tree_types):
+                Avalon.info(f"从本地获取 树木种类列表 ({file_name}) 成功")
+                return True
+            else:
+                Avalon.error(f"从本地获取 树木种类列表 ({file_name}) 失败")
+                return False
 
         def get_from_server():
             url = f"https://c88fef96.forestapp.cc/api/v1/products/coin_tree_types?seekrua=android_cn-4.41.0&seekruid={self.user.uid}"
@@ -135,13 +165,17 @@ class Forest:
                     f.write(r.text)
                 return True
             else:
-                Avalon.error(f"从服务端获取 {file_name} 可能失败")
+                Avalon.error(f"从服务端获取 树木种类列表 {file_name} 可能失败")
                 return False
 
         try:
-            run()
+            return run()
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            return False
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
+            return False
 
     # %% 获取指定用户概述
     def get_user_profile(self, _target_user_id: int):
@@ -227,12 +261,16 @@ class Forest:
             return run()
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            return False
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
+            return False
 
     # %% 模拟观看广告删除枯树
     def remove_plants_by_rewarded_ad(self):
         """
         通过模拟观看广告从而免金币删除枯树
-        :return: (bool)
+        :return: 若成功则返回 True
         """
 
         def run():
@@ -265,7 +303,7 @@ class Forest:
                     continue
             return dead_trees
 
-        def delete_plants(_id):
+        def delete_plants(_id: int):
             if self.user.uid <= 0:
                 Avalon.error("uid错误")
                 return False
@@ -288,9 +326,18 @@ class Forest:
             return run()
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            return False
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
+            return False
 
     # %% 模拟观看广告加速种植
     def boost_plant_by_rewarded_ad(self, _plant_id: int):
+        """
+        :param _plant_id: 树木的种植id, 例如 896588593
+        :return: 若成功则返回 True
+        """
+
         def run():
             Avalon.info("正在尝试获取双倍金币...")
             try:
@@ -317,25 +364,34 @@ class Forest:
         try:
             return run()
         except KeyboardInterrupt:
-            Avalon.warning("捕获到KeyboardInterrupt, 退出")
+            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            return False
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
+            return False
 
     # %% 创建房间(一起种)
     def create_room(self, _boost_by_ad: bool):
+        """
+        :param _boost_by_ad: 是否启用 模拟观看广告获取双倍金币
+        :return: 若成功则返回 True
+        """
+
         def run():
             Avalon.info("========== 当前任务: 创建房间 ==========\n", front="\n\n")
             room_info_basic = create()
             if not len(room_info_basic):
                 Avalon.error("未获取到服务器返回的房间信息! 当前任务退出")
-                return None
+                return False
             elif "exit" in room_info_basic:
-                return None
+                return False
             try:
                 show_member_info(room_info_basic["id"])
             except KeyboardInterrupt:
                 Avalon.info("捕获 KeyboardInterrupt, 已退出成员监视 ", front="\n")
             if not Avalon.ask("是否保留该房间?"):
                 leave(room_info_basic["id"])
-                return None
+                return False
             if Avalon.ask("是否有需要移除的成员?"):
                 kick(room_info_basic["id"])
             if Avalon.ask("是否开始?"):
@@ -345,7 +401,7 @@ class Forest:
                     Avalon.info("开始发送种植信息...")
                     self.plant_a_tree("countdown", room_info_basic["tree_type"], plant_time, "", 1, _boost_by_ad,
                                       end_time, room_info_basic["id"])
-            return None
+            return True
 
         def create():
             tree_type = int(Avalon.gets("请输入树的种类编码(-1为退出): "))
@@ -377,7 +433,7 @@ class Forest:
                 Avalon.error(f"创建失败 原因: {err_info}")
                 return {}
 
-        def show_member_info(_room_id):
+        def show_member_info(_room_id: int):
             Avalon.info("接下来将显示房间内成员数, 当人数足够(大于1)时请按下 \"Ctrl + C\"")
             i = 1
             while i <= 100:
@@ -399,18 +455,18 @@ class Forest:
                 i += 1
             Avalon.warning("达到最大循环次数, 自动退出成员监视", front="\n")
 
-        def get_room_info(_room_id):
+        def get_room_info(_room_id: int):
             res = self.req.my_requests("get", f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}',
                                        {"is_birthdat_2019_client": True, "detail": True, "seekrua": "android_cn-4.41.0",
                                         "seekruid": self.user.uid}, {})
             if res.status_code != 200:
                 Avalon.error(f"获取房间详细信息可能失败  响应码: {res.status_code}")
-                return None
+                return {}
             else:
                 result = json.loads(res.text)
                 return result
 
-        def kick(_room_id):
+        def kick(_room_id: int):
             kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔: ")).split(" ")
             for uid_str in kick_uid_list:
                 try:
@@ -439,7 +495,7 @@ class Forest:
                         continue
             return True
 
-        def leave(_room_id):
+        def leave(_room_id: int):
             res = self.req.my_requests("put",
                                        f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/leave?seekrua=android_cn-4.41.0&seekruid={self.user.uid}',
                                        {}, {})
@@ -450,7 +506,7 @@ class Forest:
                 Avalon.info("退出房间成功")
             return True
 
-        def start(_room_id, _end_time):
+        def start(_room_id: int, _end_time: datetime):
             res = self.req.my_requests("put",
                                        f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/start?seekrua=android_cn-4.41.0&seekruid={self.user.uid}',
                                        {}, {})
@@ -463,16 +519,27 @@ class Forest:
             else:
                 result = json.loads(res.text)
                 Avalon.info(
-                    f"房间开始成功! 共计{result['participants_count']}人  预计完成时间: {_end_time}")
+                    f"房间开始成功! 共计{result['participants_count']}人  预计完成时间: {datetime.strftime(_end_time, '%Y-%m-%d %H:%M:%S')}")
                 return True
 
         try:
-            run()
+            return run()
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            return False
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
+            return False
 
     # %% 自动植树刷金币
     def auto_plant(self, _total_n: int, _boost_by_ad: bool, _by_time_frame: bool):
+        """
+        :param _total_n: 植树的总数, 仅在 _by_time_frame 为 False 时有效
+        :param _boost_by_ad: 是否启用 模拟观看广告获取双倍金币
+        :param _by_time_frame: 是否启用 按照指定时间区间植树
+        :return: 无返回值
+        """
+
         def run():
             Avalon.info("========== 当前任务: 自动植树 ==========\n", front="\n\n")
             if _by_time_frame:
@@ -538,12 +605,19 @@ class Forest:
             return time_list
 
         try:
-            run()
+            return run()
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
 
     # %% 手动植树
     def manually_plant(self, _boost_by_ad: bool):
+        """
+        :param _boost_by_ad: 是否启用 模拟观看广告获取双倍金币
+        :return: 无返回值
+        """
+
         def run():
             Avalon.info("========== 当前任务: 手动种植 ==========", front="\n\n")
             i = 1
@@ -573,9 +647,11 @@ class Forest:
                 i += 1
 
         try:
-            run()
+            return run()
         except KeyboardInterrupt:
             Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
 
     # %% 种植一棵树
     def plant_a_tree(self, _plant_mode: str, _tree_type: int, _plant_time: int, _note: str, _number: int,
@@ -650,7 +726,6 @@ class Forest:
 
 if __name__ == '__main__':
     import sys
-    import traceback
 
 
     class _UserInfo:
@@ -690,13 +765,13 @@ if __name__ == '__main__':
         return choice
 
 
-    def _do(_n):
+    def _do(_n: int):
         if _n <= 0:
             sys.exit(0)
         elif _n == 1:
             F.get_plants(_force_update=True)
         elif _n == 2:
-            F.get_coin_tree_types()
+            F.get_coin_tree_types(_force_update=True)
         elif _n == 3:
             F.get_user_profile(int(Avalon.gets("输入目标用户的uid: ")))
         elif _n == 4:
