@@ -8,8 +8,6 @@ import time
 import traceback
 from datetime import datetime, timedelta
 
-import requests
-
 # 在 main.py 调用该模块时, 该模块的运行目录仍然为 main.py 所在目录
 try:
     from utils.avalon import Avalon
@@ -43,6 +41,9 @@ class Forest:
             "seekruid": ""
         }
         r = self.req.my_requests("post", f"{self.api_url}/api/v1/sessions", data, {})
+        if r is None:
+            Avalon.error("登录失败! 请检查网络连接")
+            return {}
         if r.status_code == 403:
             Avalon.error("登录失败! 请检查账号及密码 响应代码: 403 Forbidden")
             return {}
@@ -65,6 +66,9 @@ class Forest:
         Avalon.info("正在登出...", front="\n")
         url = f"{self.api_url}/api/v1/sessions/signout?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
         r = self.req.my_requests("delete", url, {}, {})
+        if r is None:
+            Avalon.error("登出失败! 请检查网络连接")
+            return False
         if r.status_code != 200:
             Avalon.error(f"登出可能失败")
             return False
@@ -108,6 +112,9 @@ class Forest:
         def get_from_server():
             url = f"{self.api_url}/api/v1/plants?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
             r = self.req.my_requests("get", url, {}, {})
+            if r is None:
+                Avalon.error(f"从服务器端获取 已种植列表 ({file_name}) 失败! 请检查网络连接")
+                return False
             if r.status_code == 200:
                 self.plants = json.loads(r.text)
                 Avalon.info(f"从服务器端获取 已种植列表 ({file_name}) 成功")
@@ -121,7 +128,7 @@ class Forest:
         try:
             return run()
         except KeyboardInterrupt:
-            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            Avalon.warning("捕获到 KeyboardInterrupt, 退出当前任务")
             return False
         except Exception:
             Avalon.error(traceback.format_exc(3))
@@ -161,6 +168,9 @@ class Forest:
         def get_from_server():
             url = f"{self.api_url}/api/v1/products/coin_tree_types?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
             r = self.req.my_requests("get", url)
+            if r is None:
+                Avalon.error(f"从服务器端获取 树木种类列表 ({file_name}) 失败! 请检查网络连接")
+                return False
             if r.status_code == 200:
                 self.coin_tree_types = json.loads(r.text)
                 Avalon.info(f"从服务器端获取 树木种类列表 ({file_name}) 成功")
@@ -174,7 +184,7 @@ class Forest:
         try:
             return run()
         except KeyboardInterrupt:
-            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            Avalon.warning("捕获到 KeyboardInterrupt, 退出当前任务")
             return False
         except Exception:
             Avalon.error(traceback.format_exc(3))
@@ -190,16 +200,14 @@ class Forest:
         try:
             res = self.req.my_requests("get", f"{self.api_url}/api/v1/users/{_target_user_id}/profile",
                                        {"seekrua": f"android_cn-{self.app_version}", "seekruid": self.user.uid}, {})
-        except (ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout,
-                requests.exceptions.SSLError):
-            return {}
-        except Exception:
-            return {}
-        else:
-            if res.status_code == 200:
+            if res is None:
+                return {}
+            elif res.status_code == 200:
                 return json.loads(res.text)
             else:
                 return {}
+        except Exception:
+            return {}
 
     # %% 模拟观看广告操作
     def simulate_watch_ad(self):
@@ -223,11 +231,14 @@ class Forest:
             获取 ad_session_token 以便接下来获取 ad_token
             """
             r = self.req.my_requests("post", "https://receipt-system.seekrtech.com/projects/1/ad_sessions", {}, {})
+            if r is None:
+                Avalon.error("获取 ad_session_token 失败! 请检查网络连接")
+                return False
             if (r.status_code == 201) or (r.status_code == 200):
                 Avalon.info("获取 ad_session_token 成功")
                 return json.loads(r.text)["token"]
             else:
-                Avalon.error("获取 ad_session_token 失败")
+                Avalon.error(f"获取 ad_session_token 失败! 状态码: {r.status_code}")
                 return False
 
         def get_ad_token(_ad_session_token):
@@ -235,17 +246,23 @@ class Forest:
             r = self.req.my_requests("post",
                                      f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
                                      data, {})
+            if r is None:
+                Avalon.error("获取 ad_token 失败! 请检查网络连接")
+                return False
             if (r.status_code == 201) or (r.status_code == 200):
                 Avalon.info("获取 ad_token 成功")
                 return json.loads(r.text)["token"]
             else:
-                Avalon.error("获取 ad_token 失败")
+                Avalon.error(f"获取 ad_token 失败! 状态码: {r.status_code}")
                 return False
 
         def simulate_watch(_ad_token, _ad_session_token):
             res_1 = self.req.my_requests("put",
                                          f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/watched?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
                                          {"ad_session_token": f"{_ad_session_token}"})
+            if res_1 is None:
+                Avalon.error("模拟观看广告失败! 请检查网络连接 位置: 1 -> watched")
+                return False
             if res_1.status_code != 200:
                 Avalon.error("模拟观看广告失败!  位置: 1 -> watched")
                 return False
@@ -253,6 +270,9 @@ class Forest:
             res_2 = self.req.my_requests("put",
                                          f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/claim?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
                                          {"ad_session_token": f"{_ad_session_token}", "user_id": self.user.uid})
+            if res_2 is None:
+                Avalon.error("模拟观看广告失败! 请检查网络连接 位置: 2 -> claim")
+                return False
             if res_2.status_code != 200:
                 Avalon.error("模拟观看广告失败!  位置: 2 -> claim")
                 return False
@@ -263,7 +283,7 @@ class Forest:
         try:
             return run()
         except KeyboardInterrupt:
-            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            Avalon.warning("捕获到 KeyboardInterrupt, 退出当前任务")
             return False
         except Exception:
             Avalon.error(traceback.format_exc(3))
@@ -312,23 +332,26 @@ class Forest:
                 return False
             url = f"{self.api_url}/api/v1/plants/{_id}/remove_plant_by_rewarded_ad?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
             r = self.req.my_requests("delete", url)
-            if r.status_code != 200:
-                Avalon.error("删除种植记录失败!")
-                if r.status_code == 422:
-                    Avalon.error("原因: Cannot find the product with given id")
-                elif r.status_code == 403:
-                    Avalon.error("原因: 403 Forbidden. 请检查cookie")
-                else:
-                    pass
+            if r is None:
+                Avalon.error("删除种植记录失败! 请检查网络连接")
                 return False
-            else:
+            if r.status_code == 200:
                 Avalon.info("删除种植记录成功")
                 return True
+            elif r.status_code == 422:
+                Avalon.error("原因: 422 Cannot find the product with given id")
+                return False
+            elif r.status_code == 403:
+                Avalon.error("原因: 403 Forbidden. 请检查cookie")
+                return False
+            else:
+                Avalon.error(f"删除种植记录失败! 状态码: {r.status_code}")
+                return False
 
         try:
             return run()
         except KeyboardInterrupt:
-            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            Avalon.warning("捕获到 KeyboardInterrupt, 退出当前任务")
             return False
         except Exception:
             Avalon.error(traceback.format_exc(3))
@@ -343,31 +366,24 @@ class Forest:
 
         def run():
             Avalon.info("正在尝试获取双倍金币...")
-            try:
-                if self.simulate_watch_ad() is False:
-                    return False
-                res = self.req.my_requests("put",
-                                           f"{self.api_url}/api/v1/plants/{_plant_id}/boost_plant_by_rewarded_ad",
-                                           {"seekrua": f"android_cn-{self.app_version}", "seekruid": self.user.uid}, {})
-            except (ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout,
-                    requests.exceptions.SSLError):
-                Avalon.error("网络连接超时")
+            if self.simulate_watch_ad() is False:
                 return False
-            except Exception as err_info:
-                Avalon.error(f"未知错误! {err_info}")
+            res = self.req.my_requests("put", f"{self.api_url}/api/v1/plants/{_plant_id}/boost_plant_by_rewarded_ad",
+                                       {"seekrua": f"android_cn-{self.app_version}", "seekruid": self.user.uid}, {})
+            if res is None:
+                Avalon.error("获取双倍金币失败! 请检查网络连接")
                 return False
+            if res.status_code == 200:
+                Avalon.info(f"获取双倍金币成功")
+                return True
             else:
-                if res.status_code == 200:
-                    Avalon.info(f"获取双倍金币成功")
-                    return True
-                else:
-                    Avalon.error(f"获取双倍金币失败!  返回码: {res.status_code}")
-                    return False
+                Avalon.error(f"获取双倍金币失败!  返回码: {res.status_code}")
+                return False
 
         try:
             return run()
         except KeyboardInterrupt:
-            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            Avalon.warning("捕获到 KeyboardInterrupt, 退出当前任务")
             return False
         except Exception:
             Avalon.error(traceback.format_exc(3))
@@ -422,6 +438,9 @@ class Forest:
             res = self.req.my_requests("post",
                                        f'{self.api_url}/api/v1/rooms?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}',
                                        data, {})
+            if res is None:
+                Avalon.error("创建房间失败! 请检查网络连接")
+                return {}
             if res.status_code != 201:
                 Avalon.error(f"创建房间可能失败  响应码: {res.status_code}")
                 return {}
@@ -463,6 +482,9 @@ class Forest:
                                        {"is_birthdat_2019_client": True, "detail": True,
                                         "seekrua": f"android_cn-{self.app_version}",
                                         "seekruid": self.user.uid}, {})
+            if res is None:
+                Avalon.error("获取房间详细信息失败! 请检查网络连接")
+                return {}
             if res.status_code != 200:
                 Avalon.error(f"获取房间详细信息可能失败  响应码: {res.status_code}")
                 return {}
@@ -480,14 +502,13 @@ class Forest:
                 except ValueError:
                     Avalon.warning(f"输入的uid \"{uid_str}\" 有误, 已跳过")
                     continue
-                except (ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout,
-                        requests.exceptions.SSLError):
-                    Avalon.error("网络连接超时")
-                    continue
                 except Exception as err_info:
-                    Avalon.error(f"未知错误! {err_info}")
+                    Avalon.error(f"未知错误, 退出成员移除! {err_info}")
                     return False
                 else:
+                    if res is None:
+                        Avalon.error(f"移除成员 {uid_str} 失败! 请检查网络连接")
+                        continue
                     if res.status_code == 200:
                         Avalon.info(f"移除成员 {uid_str} 成功")
                         continue
@@ -503,6 +524,9 @@ class Forest:
             res = self.req.my_requests("put",
                                        f'{self.api_url}/api/v1/rooms/{_room_id}/leave?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}',
                                        {}, {})
+            if res is None:
+                Avalon.error("退出房间失败! 请检查网络连接")
+                return False
             if res.status_code != 200:
                 Avalon.error(f"退出房间可能失败  响应码: {res.status_code}")
                 return False
@@ -514,6 +538,9 @@ class Forest:
             res = self.req.my_requests("put",
                                        f'{self.api_url}/api/v1/rooms/{_room_id}/start?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}',
                                        {}, {})
+            if res is None:
+                Avalon.error("房间开始失败! 请检查网络连接")
+                return False
             if res.status_code == 423:
                 Avalon.error(f"房间开始失败, 人数不足")
                 return False
@@ -529,7 +556,7 @@ class Forest:
         try:
             return run()
         except KeyboardInterrupt:
-            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            Avalon.warning("捕获 KeyboardInterrupt, 退出当前任务")
             return False
         except Exception:
             Avalon.error(traceback.format_exc(3))
@@ -611,7 +638,7 @@ class Forest:
         try:
             return run()
         except KeyboardInterrupt:
-            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            Avalon.warning("捕获到 KeyboardInterrupt, 退出当前任务")
         except Exception:
             Avalon.error(traceback.format_exc(3))
 
@@ -653,7 +680,7 @@ class Forest:
         try:
             return run()
         except KeyboardInterrupt:
-            Avalon.warning("捕获到KeyboardInterrupt, 退出当前任务")
+            Avalon.warning("捕获到 KeyboardInterrupt, 退出当前任务")
         except Exception:
             Avalon.error(traceback.format_exc(3))
 
@@ -708,24 +735,28 @@ class Forest:
             res = self.req.my_requests("post",
                                        f'{self.api_url}/api/v1/plants?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}',
                                        data, {})
-            if res.status_code == 403:
-                Avalon.error(f"第 {_number} 棵植树失败! 请检查Cookies 响应代码: 403 Forbidden")
-                return False
-            result = json.loads(res.text)
-            if result["is_success"]:
-                Avalon.info(f"第 {_number} 棵植树成功  数量: {result['tree_count']}  id: {result['id']}")
-                if _boost_by_ad:
-                    self.boost_plant_by_rewarded_ad(_plant_id=result["id"])
-                return True
-            else:
-                Avalon.error(f"第 {_number} 棵植树失败  响应码: {res.status_code}  {result}")
-                return False
         except json.decoder.JSONDecodeError:
-            Avalon.error(f"第 {_number} 棵植树失败 载入服务器返回Text失败")
+            Avalon.error(f"第 {_number} 棵植树失败 载入服务器返回 Text 失败")
             return False
         except Exception as err_info:
             Avalon.error(f"第 {_number} 棵植树失败  其他错误: {err_info}")
             return False
+        else:
+            if res is None:
+                Avalon.error(f"第 {_number} 棵植树失败! 请检查网络连接")
+            elif res.status_code == 403:
+                Avalon.error(f"第 {_number} 棵植树失败! 请检查 Cookies 响应代码: 403 Forbidden")
+                return False
+            else:
+                result = json.loads(res.text)
+                if result["is_success"]:
+                    Avalon.info(f"第 {_number} 棵植树成功  数量: {result['tree_count']}  id: {result['id']}")
+                    if _boost_by_ad:
+                        self.boost_plant_by_rewarded_ad(_plant_id=result["id"])
+                    return True
+                else:
+                    Avalon.error(f"第 {_number} 棵植树失败  响应码: {res.status_code}  {result}")
+                    return False
 
 
 if __name__ == '__main__':
