@@ -40,13 +40,13 @@ class HttpReq:
                 if len(self.remember_token):
                     cookie_jar.set("remember_token", self.remember_token, domain=url_parse.netloc)
                 if _method.upper() == 'GET':
-                    res = requests.get(_url, data=str_json, headers=hea, cookies=cookie_jar, timeout=(6.05, 27))
+                    res = requests.get(_url, data=str_json, headers=hea, cookies=cookie_jar, timeout=(6.05, 54))
                 elif _method.upper() == 'POST':
-                    res = requests.post(_url, data=str_json, headers=hea, cookies=cookie_jar, timeout=(6.05, 18))
+                    res = requests.post(_url, data=str_json, headers=hea, cookies=cookie_jar, timeout=(6.05, 36))
                 elif _method.upper() == 'PUT':
-                    res = requests.put(_url, data=str_json, headers=hea, cookies=cookie_jar, timeout=(6.05, 18))
+                    res = requests.put(_url, data=str_json, headers=hea, cookies=cookie_jar, timeout=(6.05, 36))
                 elif _method.upper() == 'DELETE':
-                    res = requests.delete(_url, data=str_json, headers=hea, cookies=cookie_jar, timeout=(6.05, 18))
+                    res = requests.delete(_url, data=str_json, headers=hea, cookies=cookie_jar, timeout=(6.05, 36))
                 else:
                     Avalon.error('TypeError')
                     return None
