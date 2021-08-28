@@ -20,11 +20,14 @@ except ModuleNotFoundError:
 
 
 class Forest:
+    api_url = "https://c88fef96.forestapp.cc"
+    app_version = "4.44.2"
+    plants = []
+    coin_tree_types = {}
+
     def __init__(self, _user):
         self.user = _user
         self.req = HttpReq(self.user.remember_token)
-        self.plants = []
-        self.coin_tree_types = {}
 
     # %% 登录 获取uid, remember_token 等信息
     def login(self):
@@ -39,7 +42,7 @@ class Forest:
             },
             "seekruid": ""
         }
-        r = self.req.my_requests("post", "https://c88fef96.forestapp.cc/api/v1/sessions", data, {})
+        r = self.req.my_requests("post", f"{self.api_url}/api/v1/sessions", data, {})
         if r.status_code == 403:
             Avalon.error("登录失败! 请检查账号及密码 响应代码: 403 Forbidden")
             return {}
@@ -60,7 +63,7 @@ class Forest:
         :return: 若登出成功则返回 True
         """
         Avalon.info("正在登出...", front="\n")
-        url = f"https://c88fef96.forestapp.cc/api/v1/sessions/signout?seekrua=android_cn-4.41.0&seekruid={self.user.uid}"
+        url = f"{self.api_url}/api/v1/sessions/signout?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
         r = self.req.my_requests("delete", url, {}, {})
         if r.status_code != 200:
             Avalon.error(f"登出可能失败")
@@ -103,7 +106,7 @@ class Forest:
                 return False
 
         def get_from_server():
-            url = f"https://c88fef96.forestapp.cc/api/v1/plants?seekrua=android_cn-4.41.0&seekruid={self.user.uid}"
+            url = f"{self.api_url}/api/v1/plants?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
             r = self.req.my_requests("get", url, {}, {})
             if r.status_code == 200:
                 self.plants = json.loads(r.text)
@@ -156,7 +159,7 @@ class Forest:
                 return False
 
         def get_from_server():
-            url = f"https://c88fef96.forestapp.cc/api/v1/products/coin_tree_types?seekrua=android_cn-4.41.0&seekruid={self.user.uid}"
+            url = f"{self.api_url}/api/v1/products/coin_tree_types?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
             r = self.req.my_requests("get", url)
             if r.status_code == 200:
                 self.coin_tree_types = json.loads(r.text)
@@ -185,8 +188,8 @@ class Forest:
         :return: (json)
         """
         try:
-            res = self.req.my_requests("get", f"https://c88fef96.forestapp.cc/api/v1/users/{_target_user_id}/profile",
-                                       {"seekrua": "android_cn-4.41.0", "seekruid": self.user.uid}, {})
+            res = self.req.my_requests("get", f"{self.api_url}/api/v1/users/{_target_user_id}/profile",
+                                       {"seekrua": f"android_cn-{self.app_version}", "seekruid": self.user.uid}, {})
         except (ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout,
                 requests.exceptions.SSLError):
             return {}
@@ -230,7 +233,7 @@ class Forest:
         def get_ad_token(_ad_session_token):
             data = {"ad_session_token": f"{_ad_session_token}"}
             r = self.req.my_requests("post",
-                                     f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views?seekrua=android_cn-4.41.0&seekruid={self.user.uid}",
+                                     f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
                                      data, {})
             if (r.status_code == 201) or (r.status_code == 200):
                 Avalon.info("获取 ad_token 成功")
@@ -241,14 +244,14 @@ class Forest:
 
         def simulate_watch(_ad_token, _ad_session_token):
             res_1 = self.req.my_requests("put",
-                                         f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/watched?seekrua=android_cn-4.41.0&seekruid={self.user.uid}",
+                                         f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/watched?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
                                          {"ad_session_token": f"{_ad_session_token}"})
             if res_1.status_code != 200:
                 Avalon.error("模拟观看广告失败!  位置: 1 -> watched")
                 return False
             time.sleep(0.3)
             res_2 = self.req.my_requests("put",
-                                         f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/claim?seekrua=android_cn-4.41.0&seekruid={self.user.uid}",
+                                         f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/claim?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
                                          {"ad_session_token": f"{_ad_session_token}", "user_id": self.user.uid})
             if res_2.status_code != 200:
                 Avalon.error("模拟观看广告失败!  位置: 2 -> claim")
@@ -307,7 +310,7 @@ class Forest:
             if self.user.uid <= 0:
                 Avalon.error("uid错误")
                 return False
-            url = f"https://c88fef96.forestapp.cc/api/v1/plants/{_id}/remove_plant_by_rewarded_ad?seekrua=android_cn-4.41.0&seekruid={self.user.uid}"
+            url = f"{self.api_url}/api/v1/plants/{_id}/remove_plant_by_rewarded_ad?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
             r = self.req.my_requests("delete", url)
             if r.status_code != 200:
                 Avalon.error("删除种植记录失败!")
@@ -344,8 +347,8 @@ class Forest:
                 if self.simulate_watch_ad() is False:
                     return False
                 res = self.req.my_requests("put",
-                                           f"https://c88fef96.forestapp.cc/api/v1/plants/{_plant_id}/boost_plant_by_rewarded_ad",
-                                           {"seekrua": "android_cn-4.41.0", "seekruid": self.user.uid}, {})
+                                           f"{self.api_url}/api/v1/plants/{_plant_id}/boost_plant_by_rewarded_ad",
+                                           {"seekrua": f"android_cn-{self.app_version}", "seekruid": self.user.uid}, {})
             except (ConnectionError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout,
                     requests.exceptions.SSLError):
                 Avalon.error("网络连接超时")
@@ -417,7 +420,7 @@ class Forest:
                 "room_type": "chartered"
             }
             res = self.req.my_requests("post",
-                                       f'https://c88fef96.forestapp.cc/api/v1/rooms?seekrua=android_cn-4.41.0&seekruid={self.user.uid}',
+                                       f'{self.api_url}/api/v1/rooms?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}',
                                        data, {})
             if res.status_code != 201:
                 Avalon.error(f"创建房间可能失败  响应码: {res.status_code}")
@@ -456,8 +459,9 @@ class Forest:
             Avalon.warning("达到最大循环次数, 自动退出成员监视", front="\n")
 
         def get_room_info(_room_id: int):
-            res = self.req.my_requests("get", f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}',
-                                       {"is_birthdat_2019_client": True, "detail": True, "seekrua": "android_cn-4.41.0",
+            res = self.req.my_requests("get", f'{self.api_url}/api/v1/rooms/{_room_id}',
+                                       {"is_birthdat_2019_client": True, "detail": True,
+                                        "seekrua": f"android_cn-{self.app_version}",
                                         "seekruid": self.user.uid}, {})
             if res.status_code != 200:
                 Avalon.error(f"获取房间详细信息可能失败  响应码: {res.status_code}")
@@ -470,8 +474,8 @@ class Forest:
             kick_uid_list = str(Avalon.gets("输入需要移除的成员的uid, 用空格分隔: ")).split(" ")
             for uid_str in kick_uid_list:
                 try:
-                    res = self.req.my_requests("put", f"https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/kick",
-                                               {"user_id": int(uid_str), "seekrua": "android_cn-4.41.0",
+                    res = self.req.my_requests("put", f"{self.api_url}/api/v1/rooms/{_room_id}/kick",
+                                               {"user_id": int(uid_str), "seekrua": f"android_cn-{self.app_version}",
                                                 "seekruid": self.user.uid}, {})
                 except ValueError:
                     Avalon.warning(f"输入的uid \"{uid_str}\" 有误, 已跳过")
@@ -497,7 +501,7 @@ class Forest:
 
         def leave(_room_id: int):
             res = self.req.my_requests("put",
-                                       f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/leave?seekrua=android_cn-4.41.0&seekruid={self.user.uid}',
+                                       f'{self.api_url}/api/v1/rooms/{_room_id}/leave?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}',
                                        {}, {})
             if res.status_code != 200:
                 Avalon.error(f"退出房间可能失败  响应码: {res.status_code}")
@@ -508,7 +512,7 @@ class Forest:
 
         def start(_room_id: int, _end_time: datetime):
             res = self.req.my_requests("put",
-                                       f'https://c88fef96.forestapp.cc/api/v1/rooms/{_room_id}/start?seekrua=android_cn-4.41.0&seekruid={self.user.uid}',
+                                       f'{self.api_url}/api/v1/rooms/{_room_id}/start?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}',
                                        {}, {})
             if res.status_code == 423:
                 Avalon.error(f"房间开始失败, 人数不足")
@@ -702,7 +706,7 @@ class Forest:
         }
         try:
             res = self.req.my_requests("post",
-                                       f'https://c88fef96.forestapp.cc/api/v1/plants?seekrua=android_cn-4.41.0&seekruid={self.user.uid}',
+                                       f'{self.api_url}/api/v1/plants?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}',
                                        data, {})
             if res.status_code == 403:
                 Avalon.error(f"第 {_number} 棵植树失败! 请检查Cookies 响应代码: 403 Forbidden")
