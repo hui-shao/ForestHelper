@@ -6,6 +6,7 @@
 import os
 import shutil
 import sys
+import traceback
 
 import toml
 
@@ -106,21 +107,33 @@ def run():
         F.create_room(_boost_by_ad=config["boost_plant_by_rewarded_ad"]["enable"])
     if config["auto_logout"]["enable"]:
         logout()
-    Avalon.info("所有任务执行完毕~", front="\n")
+    Avalon.info("所有任务执行完毕~\n", front="\n")
 
 
 if __name__ == '__main__':
-    os.chdir(sys.path[0])
-    config = {}
-    username = ""
-    passwd = ""
-    uid = 0
-    remember_token = ""
-    makedir()
-    if read_config():
-        user = User(username, passwd, uid, remember_token)
-        F = Forest(user)
-        common_settings()
-        run()
-    else:
+    try:
+        os.chdir(sys.path[0])
+        config = {}
+        username = ""
+        passwd = ""
+        uid = 0
+        remember_token = ""
+        makedir()
+        if read_config():
+            user = User(username, passwd, uid, remember_token)
+            F = Forest(user)
+            common_settings()
+            run()
+        else:
+            sys.exit(0)
+    except KeyboardInterrupt:
+        Avalon.warning("捕获到 KeyboardInterrupt, 程序终止\n", front="\n")
         sys.exit(0)
+    except KeyError:
+        Avalon.warning("配置文件 config.toml 可能存在问题, 请检查!\n", front="\n")
+        Avalon.warning(traceback.format_exc(3))
+        sys.exit(1)
+    except Exception:
+        Avalon.error("其他错误! 程序终止!\n", front="\n")
+        Avalon.error(traceback.format_exc(3))
+        sys.exit(2)
