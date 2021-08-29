@@ -1,3 +1,8 @@
+# 常规设置
+[common]
+url_choice = 2  # 选择需要使用的 api 地址, 如果有问题可以改为 1 (默认选择地址2 因为针对中国大陆有优化)
+app_version = "4.44.2"  # 指定 url 参数中提交的 app 版本号, 一般保持默认即可
+
 # 用户设置
 # 请在下方填写您的账号凭据
 [user]
@@ -9,7 +14,7 @@ remember_token = ""  # 初次使用保持现状即可, 无需设置
 
 # 通过模拟观看广告免费删除植树记录
 [remove_plants_by_rewarded_ad]
-enable = true # 开关
+enable = false # 开关
 
 # 通过模拟观看广告获取双倍金币
 [boost_plant_by_rewarded_ad]

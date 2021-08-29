@@ -86,6 +86,12 @@ def login():
         Avalon.info(f"当前用户信息 -> {user.username} ({user.uid})", front="\n")
 
 
+def common_settings():
+    url_choice = int(config["common"]["url_choice"]) - 1
+    F.api_url = ["https://c88fef96.forestapp.cc", "https://forest.dc.upwardsware.com"][url_choice]
+    F.app_version = str(config["common"]["app_version"])
+
+
 def run():
     login()
     if config["remove_plants_by_rewarded_ad"]["enable"]:
@@ -114,6 +120,7 @@ if __name__ == '__main__':
     if read_config():
         user = User(username, passwd, uid, remember_token)
         F = Forest(user)
+        common_settings()
         run()
     else:
         sys.exit(0)

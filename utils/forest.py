@@ -18,7 +18,7 @@ except ModuleNotFoundError:
 
 
 class Forest:
-    api_url = "https://c88fef96.forestapp.cc"
+    api_url = "https://forest.dc.upwardsware.com"
     app_version = "4.44.2"
     plants = []
     coin_tree_types = {}
