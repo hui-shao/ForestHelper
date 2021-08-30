@@ -37,8 +37,13 @@ def read_config():
     except IOError:
         Avalon.error(f"无法加载{config_file}, 请检查文件是否存在, 文件名是否正确")
         return False
+    except toml.TomlDecodeError as decode_err_info:
+        Avalon.error(f"载入{config_file}错误, 请检查配置文件内容是否规范无误")
+        Avalon.error(decode_err_info)
+        return False
     except Exception:
-        Avalon.error(f"无法加载{config_file}, 其他错误")
+        Avalon.error(f"无法加载{config_file}, 其他错误\n")
+        Avalon.error(traceback.format_exc(3))
         return False
     else:
         username = config["user"]["username"]
