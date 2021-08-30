@@ -93,8 +93,11 @@ def login():
 
 
 def common_settings():
-    url_choice = int(config["common"]["url_choice"]) - 1
+    # url setting
+    url_choice = 2 if (config["common"]["url_choice"] not in [1, 2]) else int(config["common"]["url_choice"])
+    url_choice -= 1  # 转换为数组序号
     F.api_url = ["https://c88fef96.forestapp.cc", "https://forest.dc.upwardsware.com"][url_choice]
+    # app_version setting
     F.app_version = str(config["common"]["app_version"])
 
 
