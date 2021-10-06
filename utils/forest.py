@@ -563,11 +563,14 @@ class Forest:
             return False
 
     # %% 自动植树刷金币
-    def auto_plant(self, _total_n: int, _boost_by_ad: bool, _by_time_frame: bool):
+    def auto_plant(self, _total_n: int, _boost_by_ad: bool, _by_time_frame: bool, _short_sleep_time: bool = False,
+                   _customize_plant_time: int = -1):
         """
         :param _total_n: 植树的总数, 仅在 _by_time_frame 为 False 时有效
         :param _boost_by_ad: 是否启用 模拟观看广告获取双倍金币
         :param _by_time_frame: 是否启用 按照指定时间区间植树
+        :param _short_sleep_time: 是否启用 缩短植树请求间的 time_sleep 延迟 （仅针对 mode_1 有效）
+        :param _customize_plant_time: 是否启用 自定义每棵树的种植时间 单位为分钟
         :return: 无返回值
         """
 
@@ -585,23 +588,32 @@ class Forest:
             Avalon.info("共需种植 %d 棵树" % tree_total)
             while i <= tree_total:
                 tree_type = random.randint(1, 80)
-                plant_time = random.choice(list(range(120, 185, 5)))  # 随机选择范围在 [120,185) 之间的 5 的倍数作为时长
+                if _customize_plant_time == -1 or _customize_plant_time == "":
+                    plant_time = random.choice(list(range(120, 185, 5)))  # 随机选择范围在 [120,185) 之间的 5 的倍数作为时长
+                else:
+                    plant_time = int(int(_customize_plant_time) / 5) * 5
                 note = f"{tree_type}"
                 end_time = endtime_list[i - 1]
                 print("\n")
                 self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad, end_time)
-                sleep_time = random.randint(2, 10) + random.random()
-                sleep_time = round(sleep_time, 2)
+                if _short_sleep_time:
+                    sleep_time = 0.3
+                else:
+                    sleep_time = random.randint(2, 10) + random.random()
+                    sleep_time = round(sleep_time, 2)
                 Avalon.info(f"Wait {sleep_time} seconds")
                 time.sleep(sleep_time)
                 i += 1
 
         def mode_2():
-            plant_time = random.choice(list(range(30, 180, 5)))
+            if _customize_plant_time == -1 or _customize_plant_time == "":
+                plant_time = random.choice(list(range(30, 180, 5)))
+            else:
+                plant_time = int(int(_customize_plant_time) / 5) * 5
             tree_type = random.randint(1, 81)
             note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
             i = 1
-            while i <= _total_n:
+            while i <= int(_total_n):
                 self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad)
                 Avalon.info(f"将在 {plant_time} min后种植下一棵树")
                 time.sleep(plant_time * 60)
@@ -814,7 +826,9 @@ if __name__ == '__main__':
         elif _n == 5:
             F.create_room(Avalon.ask("是否启用双倍金币"))
         elif _n == 6:
-            F.auto_plant(int(Avalon.gets("自动种植总数 (仅在\'不按时间区间\'时有效)")), Avalon.ask("是否启用双倍金币"), Avalon.ask("是否按照时间区间"))
+            F.auto_plant(Avalon.gets("自动种植总数 (可选 仅在\'不按时间区间\'时有效): ", default=10), Avalon.ask("是否启用双倍金币"),
+                         Avalon.ask("是否按照时间区间"),
+                         Avalon.ask("是否缩短植树请求间隔时间"), Avalon.gets("输入自定义的每棵树植树时长(单位为分钟 可选): ", default=-1))
         elif _n == 7:
             F.manually_plant(Avalon.ask("是否启用双倍金币"))
         else:
