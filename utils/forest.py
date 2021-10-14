@@ -841,7 +841,9 @@ if __name__ == '__main__':
     username = Avalon.gets("请输入用户名: ", front="\n")
     passwd = Avalon.gets("请输入密码: ")
     F = Forest(_UserInfo(username, passwd, 0, ""))
-    F.login()
+    if len(F.login()) <= 0:
+        Avalon.error("登陆出现问题, 程序退出!")
+        sys.exit(0)
     while True:
         try:
             _show_menu()
