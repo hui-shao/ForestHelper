@@ -55,7 +55,7 @@ class Forest:
             self.user.remember_token = id_info["remember_token"]
             self.req.remember_token = id_info["remember_token"]  # 首次登陆调用 login() 后必须更新 req.remember_token 的值, 否则相当于未登录
             self.user.uid = id_info["user_id"]
-            Avalon.info("登录成功, 欢迎你~: %s" % id_info["user_name"])
+            Avalon.info("登录成功, 欢迎你~: %s(%d)" % (id_info["user_name"], id_info["user_id"]))
             return {"uid": self.user.uid, "remember_token": self.user.remember_token}
 
     # %% 登出
