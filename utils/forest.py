@@ -408,6 +408,9 @@ class Forest:
                 show_member_info(room_info_basic["id"])
             except KeyboardInterrupt:
                 Avalon.info("捕获 KeyboardInterrupt, 已退出成员监视 ", front="\n")
+            except Exception:
+                Avalon.warning(f"{traceback.format_exc(3)}")
+                Avalon.warning("发生未定义异常, 已退出成员监视 ", front="\n")
             if not Avalon.ask("是否保留该房间?"):
                 leave(room_info_basic["id"])
                 return False
@@ -446,7 +449,7 @@ class Forest:
                 return {}
             try:
                 result = json.loads(res.text)
-                Avalon.info(f"房间创建成功!  token: {result['token']}")
+                Avalon.info(f"房间创建成功!  token: {result['token']} id: {result['id']}")
                 return result
             except json.decoder.JSONDecodeError:
                 Avalon.error(f"房间创建失败! 载入服务器返回Text失败")
@@ -465,8 +468,11 @@ class Forest:
                     user_info = f"{user['name']} {user['user_id']}"
                     user_profile = self.get_user_profile(user["user_id"])
                     if len(user_profile) > 0:
-                        success_rate = (100 * user_profile["health_count"] / (
-                                user_profile["health_count"] + user_profile["death_count"])).__round__(2)
+                        user_total_tree = user_profile["health_count"] + user_profile["death_count"]
+                        if user_total_tree != 0:
+                            success_rate = (100 * user_profile["health_count"] / user_total_tree).__round__(2)
+                        else:
+                            success_rate = 0.00
                         days, m = divmod(user_profile["total_minute"], (60 * 24))
                         hours, minutes = divmod(m, 60)
                         user_info += f" {success_rate}% {days}天{hours}时{minutes}分"
