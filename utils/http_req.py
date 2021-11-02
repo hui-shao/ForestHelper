@@ -33,7 +33,7 @@ class HttpReq:
             "User-Agent": "okhttp/4.9.1"
         }
         retry_n = 0
-        while retry_n < 3:
+        while retry_n < 5:
             try:
                 if _ex_hea:
                     hea.update(_ex_hea)
@@ -74,6 +74,7 @@ class HttpReq:
                 return None
             else:
                 return res
-        retry_n += 1
+            retry_n += 1
+            continue
         Avalon.error("达到最大重试次数, 退出", front="\n")
         return None
