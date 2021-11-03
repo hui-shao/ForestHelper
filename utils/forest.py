@@ -847,6 +847,8 @@ if __name__ == '__main__':
 
     os.chdir(sys.path[0])
     os.chdir("../")
+    if not os.path.exists("_user_files"):
+        os.mkdir("_user_files")
     username = Avalon.gets("请输入用户名: ", front="\n")
     passwd = Avalon.gets("请输入密码: ")
     F = Forest(_UserInfo(username, passwd, 0, ""))
