@@ -53,9 +53,9 @@ class Forest:
         else:
             id_info = json.loads(r.text)
             self.user.remember_token = id_info["remember_token"]
-            self.req.remember_token = id_info["remember_token"]  # 首次登陆调用 login() 后必须更新 req.remember_token 的值, 否则相当于未登录
+            self.req.remember_token = id_info["remember_token"]  # 首次登录调用 login() 后必须更新 req.remember_token 的值, 否则相当于未登录
             self.user.uid = id_info["user_id"]
-            Avalon.info("登录成功, 欢迎你~: %s(%d)" % (id_info["user_name"], id_info["user_id"]))
+            Avalon.info("登录成功, 欢迎你~: %s (%d)" % (id_info["user_name"], id_info["user_id"]))
             return {"uid": self.user.uid, "remember_token": self.user.remember_token}
 
     # %% 登出
@@ -191,10 +191,11 @@ class Forest:
             return False
 
     # %% 获取指定用户概述
-    def get_user_profile(self, _target_user_id: int):
+    def get_user_profile(self, _target_user_id: int, _is_print: bool = False):
         """
         获取指定用户的 Profile
         :param _target_user_id: 目标用户的id
+        :param _is_print: 是否在控制台输出结果
         :return: (json)
         """
         try:
@@ -203,6 +204,8 @@ class Forest:
             if res is None:
                 return {}
             elif res.status_code == 200:
+                if _is_print:
+                    Avalon.info(f"{res.text}\n", front="\n")
                 return json.loads(res.text)
             else:
                 return {}
@@ -826,7 +829,7 @@ if __name__ == '__main__':
         elif _n == 2:
             F.get_coin_tree_types(_force_update=True)
         elif _n == 3:
-            F.get_user_profile(int(Avalon.gets("输入目标用户的uid: ")))
+            F.get_user_profile(int(Avalon.gets("输入目标用户的uid: ")), True)
         elif _n == 4:
             F.remove_plants_by_rewarded_ad()
         elif _n == 5:
@@ -848,7 +851,7 @@ if __name__ == '__main__':
     passwd = Avalon.gets("请输入密码: ")
     F = Forest(_UserInfo(username, passwd, 0, ""))
     if len(F.login()) <= 0:
-        Avalon.error("登陆出现问题, 程序退出!")
+        Avalon.error("登录出现问题, 程序退出!")
         sys.exit(0)
     while True:
         try:
