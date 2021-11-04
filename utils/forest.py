@@ -414,12 +414,12 @@ class Forest:
             except Exception:
                 Avalon.warning(f"{traceback.format_exc(3)}")
                 Avalon.warning("发生未定义异常, 已退出成员监视 ", front="\n")
-            if not Avalon.ask("是否保留该房间?"):
+            if not Avalon.ask("是否保留该房间 (Y)?", default=True):
                 leave(room_info_basic["id"])
                 return False
-            if Avalon.ask("是否有需要移除的成员?"):
+            if Avalon.ask("是否有需要移除的成员 (N)?", default=False):
                 kick(room_info_basic["id"])
-            if Avalon.ask("是否开始?"):
+            if Avalon.ask("是否开始 (Y)?", default=True):
                 plant_time = int(room_info_basic["target_duration"] / 60)
                 end_time = datetime.now() + timedelta(minutes=plant_time)
                 if start(room_info_basic["id"], end_time):
