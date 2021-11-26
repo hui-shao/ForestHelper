@@ -20,14 +20,15 @@ except ModuleNotFoundError:
 class Forest:
     api_url_tuple = (
         "https://c88fef96.forestapp.cc", "https://forest.dc.upwardsware.com", "https://forest-china.upwardsware.com")
-    api_url = api_url_tuple[1]
     app_version = "4.50.0"
     plants = []
     coin_tree_types = {}
 
     def __init__(self, _user):
+        self.login_trial_n = 0
         self.user = _user
         self.req = HttpReq(self.user.remember_token)
+        self.api_url = self.api_url_tuple[1]
         self.select_api_url()
 
     # %% 设置 api_url
@@ -65,11 +66,12 @@ class Forest:
             Avalon.error("登录失败! 请检查网络连接")
             return {}
         if r.status_code == 403:
-            if self.user.server != "auto":
+            if self.user.server != "auto" or self.login_trial_n >= 2:
                 Avalon.error("登录失败! 请检查账号及密码 响应代码: 403 Forbidden")
                 return {}
             else:
                 self.api_url = self.api_url_tuple[2]  # 在 auto 模式下, 若第一次登录失败, 切换为中国服务器 api 再次尝试登录
+                self.login_trial_n += 1
                 return self.login()
         elif r.status_code != 200:
             Avalon.error(f"登录可能失败 响应代码: {r.status_code}")
