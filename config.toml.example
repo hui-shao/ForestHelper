@@ -1,7 +1,7 @@
 # 常规设置
 [common]
-url_choice = 2  # 选择需要使用的 api 地址, 如果有问题可以改为 1 (默认选择地址2 因为针对中国大陆有优化)
-app_version = "4.47.0"  # 指定 url 参数中提交的 app 版本号, 一般保持默认即可
+enable_network_accelerator = true  # 是否启用针对中国大陆的加速链接(仅在 user.server 不为 china 时有效)
+app_version = "4.50.0"  # 指定 url 参数中提交的 app 版本号, 一般保持默认即可
 
 # 用户设置
 # 请在下方填写您的账号凭据
@@ -10,7 +10,7 @@ username = ""  # 用户名, 通常是邮箱
 password = ""
 uid = 0  # 初次使用保持现状即可, 无需设置
 remember_token = ""  # 初次使用保持现状即可, 无需设置
-
+server = "auto"  # 用户所属的服务器 可选参数 auto -> 自动判断  china -> 中国大陆  global -> 全球
 
 # 通过模拟观看广告免费删除植树记录
 [remove_plants_by_rewarded_ad]

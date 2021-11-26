@@ -26,7 +26,7 @@ def makedir():
 # %% 读取配置文件
 def read_config():
     Avalon.info("读取配置文件中……", front="\n")
-    global config, username, passwd, uid, remember_token
+    global config, username, passwd, uid, remember_token, server
     config_file = sys.argv[1] if len(sys.argv) > 1 else "config.toml"
     try:
         with open(config_file, "r", encoding="utf-8") as f:
@@ -50,6 +50,7 @@ def read_config():
         passwd = config["user"]["password"]
         uid = config["user"]["uid"]
         remember_token = config["user"]["remember_token"]
+        server = config["user"]["server"]
         Avalon.info("配置文件读取成功")
         return True
 
@@ -58,7 +59,7 @@ def read_config():
 def write_config():
     config_file = sys.argv[1] if len(sys.argv) > 1 else "config.toml"
     config_2 = config.copy()
-    config_2["user"].update({"uid": user.uid, "remember_token": user.remember_token})
+    config_2["user"].update({"uid": user.uid, "remember_token": user.remember_token, "server": user.server})
     try:
         f = open(config_file, "w+", encoding="utf-8")
         toml.dump(config_2, f)
@@ -87,6 +88,7 @@ def login():
         if len(login_info):
             user.uid = login_info["uid"]
             user.remember_token = login_info["remember_token"]
+            user.server = login_info["server"]
             write_config()
     else:
         Avalon.info(f"当前用户信息 -> {user.username} ({user.uid})", front="\n")
@@ -94,9 +96,8 @@ def login():
 
 def common_settings():
     # url setting
-    url_choice = 2 if (config["common"]["url_choice"] not in [1, 2]) else int(config["common"]["url_choice"])
-    url_choice -= 1  # 转换为数组序号
-    F.api_url = ["https://c88fef96.forestapp.cc", "https://forest.dc.upwardsware.com"][url_choice]
+    if (not config["common"]["enable_network_accelerator"]) and config["user"]["server"] == "global":
+        F.select_api_url(0)  # 若未启用 network_accelerator 且 user.server 为 global , 更改 api_url 为 官方默认无加速链接
     # app_version setting
     F.app_version = str(config["common"]["app_version"])
 
@@ -126,11 +127,12 @@ if __name__ == '__main__':
         passwd = ""
         uid = 0
         remember_token = ""
+        server = "auto"
         makedir()
         if read_config():
-            user = User(username, passwd, uid, remember_token)
+            user = User(username, passwd, uid, remember_token, server)
             F = Forest(user)
-            common_settings()
+            common_settings()  # 再次对 F 中的类变量进行设置
             run()
         else:
             sys.exit(0)

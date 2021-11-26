@@ -18,14 +18,34 @@ except ModuleNotFoundError:
 
 
 class Forest:
-    api_url = "https://forest.dc.upwardsware.com"
-    app_version = "4.44.2"
+    api_url_tuple = (
+        "https://c88fef96.forestapp.cc", "https://forest.dc.upwardsware.com", "https://forest-china.upwardsware.com")
+    api_url = api_url_tuple[1]
+    app_version = "4.50.0"
     plants = []
     coin_tree_types = {}
 
     def __init__(self, _user):
         self.user = _user
         self.req = HttpReq(self.user.remember_token)
+        self.select_api_url()
+
+    # %% 设置 api_url
+    def select_api_url(self, _i: int = -1):
+        """
+        用于设置 self.api_url 不传入 _i 参数时, 则根据 self.user.server 进行选择
+        :param _i: 可选值为 0 or 1 or 2  分别对应 默认地址(全球服务器) | 针对大陆的加速地址(全球服务器) | 中国大陆服务器地址
+        :return: None
+        """
+        if _i == -1:
+            if self.user.server == "china":
+                self.select_api_url(2)
+            elif self.user.server == "global":
+                self.select_api_url(1)  # 若用户 server 为 global, 默认启用 "加速链接"
+        elif 0 <= _i <= 2:
+            self.api_url = self.api_url_tuple[_i]
+        else:
+            pass
 
     # %% 登录 获取uid, remember_token 等信息
     def login(self):
@@ -45,8 +65,12 @@ class Forest:
             Avalon.error("登录失败! 请检查网络连接")
             return {}
         if r.status_code == 403:
-            Avalon.error("登录失败! 请检查账号及密码 响应代码: 403 Forbidden")
-            return {}
+            if self.user.server != "auto":
+                Avalon.error("登录失败! 请检查账号及密码 响应代码: 403 Forbidden")
+                return {}
+            else:
+                self.api_url = self.api_url_tuple[2]  # 在 auto 模式下, 若第一次登录失败, 切换为中国服务器 api 再次尝试登录
+                return self.login()
         elif r.status_code != 200:
             Avalon.error(f"登录可能失败 响应代码: {r.status_code}")
             return {}
@@ -55,8 +79,9 @@ class Forest:
             self.user.remember_token = id_info["remember_token"]
             self.req.remember_token = id_info["remember_token"]  # 首次登录调用 login() 后必须更新 req.remember_token 的值, 否则相当于未登录
             self.user.uid = id_info["user_id"]
-            Avalon.info("登录成功, 欢迎你~: %s (%d)" % (id_info["user_name"], id_info["user_id"]))
-            return {"uid": self.user.uid, "remember_token": self.user.remember_token}
+            self.user.server = ("global", "global", "china")[self.api_url_tuple.index(self.api_url)]
+            Avalon.info("登录成功, 欢迎你~: %s (%d) (%s)" % (id_info["user_name"], id_info["user_id"], self.user.server))
+            return {"uid": self.user.uid, "remember_token": self.user.remember_token, "server": self.user.server}
 
     # %% 登出
     def logout(self):
@@ -785,11 +810,12 @@ if __name__ == '__main__':
 
 
     class _UserInfo:
-        def __init__(self, _username, _passwd, _uid, _remember_token):
+        def __init__(self, _username, _passwd, _uid, _remember_token, _server):
             self.username = _username
             self.passwd = _passwd
             self.uid = _uid
             self.remember_token = _remember_token
+            self.server = _server
 
 
     def _show_menu():
@@ -851,7 +877,8 @@ if __name__ == '__main__':
         os.mkdir("_user_files")
     username = Avalon.gets("请输入用户名: ", front="\n")
     passwd = Avalon.gets("请输入密码: ")
-    F = Forest(_UserInfo(username, passwd, 0, ""))
+    server = Avalon.gets("请选择服务器: 1.自动  2.大陆  3.全球  -> (1) : ", default="1")
+    F = Forest(_UserInfo(username, passwd, 0, "", ("auto", "china", "global")[int(server) - 1]))
     if len(F.login()) <= 0:
         Avalon.error("登录出现问题, 程序退出!")
         sys.exit(0)
