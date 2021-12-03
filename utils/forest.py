@@ -623,7 +623,7 @@ class Forest:
             tree_total = len(endtime_list)
             Avalon.info("共需种植 %d 棵树" % tree_total)
             while i <= tree_total:
-                tree_type = random.randint(1, 80)
+                tree_type = random.randint(1, 83)
                 if _customize_plant_time == -1 or _customize_plant_time == "":
                     plant_time = random.choice(list(range(120, 185, 5)))  # 随机选择范围在 [120,185) 之间的 5 的倍数作为时长
                 else:
@@ -646,7 +646,7 @@ class Forest:
                 plant_time = random.choice(list(range(30, 180, 5)))
             else:
                 plant_time = int(int(_customize_plant_time) / 5) * 5
-            tree_type = random.randint(1, 81)
+            tree_type = random.randint(1, 83)
             note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
             i = 1
             while i <= int(_total_n):
