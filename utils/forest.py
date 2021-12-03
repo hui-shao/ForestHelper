@@ -65,7 +65,15 @@ class Forest:
         if r is None:
             Avalon.error("登录失败! 请检查网络连接")
             return {}
-        if r.status_code == 403:
+        if r.status_code == 481:
+            if self.login_trial_n >= 2:
+                Avalon.error("登录失败! 请检查账号及密码 响应代码: 481")
+                return {}
+            else:
+                self.api_url = self.api_url_tuple[2]  # 收到 481 返回码, 可能是由于中国区用户在全球服务器登陆造成 (目前看来是这样 2021.12.03)
+                self.login_trial_n += 1
+                return self.login()
+        elif r.status_code == 403:
             if self.user.server != "auto" or self.login_trial_n >= 2:
                 Avalon.error("登录失败! 请检查账号及密码 响应代码: 403 Forbidden")
                 return {}
