@@ -459,7 +459,8 @@ class Forest:
                 end_time = datetime.now() + timedelta(minutes=plant_time)
                 if start(room_info_basic["id"], end_time):
                     Avalon.info("开始发送种植信息...")
-                    self.plant_a_tree("countdown", room_info_basic["tree_type"], plant_time, "", 1, _boost_by_ad,
+                    self.plant_a_tree("countdown", room_info_basic["tree_type"], plant_time,
+                                      "{} room".format(room_info_basic["tree_type"]), 1, _boost_by_ad,
                                       end_time, room_info_basic["id"])
             return True
 

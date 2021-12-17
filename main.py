@@ -90,8 +90,10 @@ def login():
             user.remember_token = login_info["remember_token"]
             user.server = login_info["server"]
             write_config()
+        else:
+            exit(0)
     else:
-        Avalon.info(f"当前用户信息 -> {user.username} ({user.uid})", front="\n")
+        Avalon.info(f"当前用户信息 -> {user.username} ({user.uid}) ({user.server})", front="\n")
 
 
 def common_settings():
