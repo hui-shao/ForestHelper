@@ -627,6 +627,9 @@ class Forest:
                 mode_2()
 
         def mode_1():
+            """
+            按照指定时间区间植树
+            """
             i = 1
             endtime_list = gen_list()
             tree_total = len(endtime_list)
@@ -655,13 +658,14 @@ class Forest:
                 plant_time = random.choice(list(range(30, 180, 5)))
             else:
                 plant_time = int(int(_customize_plant_time) / 5) * 5
-            tree_type = random.randint(1, 83)
-            note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
             i = 1
             while i <= int(_total_n):
-                self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad)
-                Avalon.info(f"将在 {plant_time} min后种植下一棵树")
-                time.sleep(plant_time * 60)
+                tree_type = random.randint(1, 83)
+                note = random.choice(["学习", "娱乐", "工作", "锻炼", "休息", "其他"])
+                Avalon.info(f"将在 {plant_time} min后种植第 {i} 棵树")
+                self.sleep(plant_time * 60, False)
+                time.sleep(1)
+                self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad, datetime.now())
                 i += 1
 
         def gen_list():
