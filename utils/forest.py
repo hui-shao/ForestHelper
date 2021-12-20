@@ -815,6 +815,32 @@ class Forest:
                     Avalon.error(f"第 {_number} 棵植树失败  响应码: {res.status_code}  {result}")
                     return False
 
+    # %% 自定义的 sleep 函数 (长时间使用 time.sleep() 计时可能会不准确)
+    @staticmethod
+    def sleep(duration: float, high_accuracy: bool):
+        """
+        :param duration: 以秒为单位的时间间隔
+        :param high_accuracy: 是否启用高精度计时(占资源)
+        :return: None
+        """
+
+        def high():
+            now = get_now()
+            end = now + duration
+            while now < end:
+                now = get_now()
+
+        def low():
+            now = get_now()
+            end = now + duration
+            while now < end:
+                if end - now > 60:  # 若当前时间距离距离目标时间 1 min 外, 执行sleep
+                    time.sleep(10)
+                now = get_now()
+
+        get_now = time.perf_counter
+        high() if high_accuracy else low()
+
 
 if __name__ == '__main__':
     import sys
