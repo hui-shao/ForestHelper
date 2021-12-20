@@ -729,8 +729,8 @@ class Forest:
                         else:
                             self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad, end_time)
                             break
-                    else:  # 如果没有指定end_time, 则不传 end_time 参数 (默认取当前时间), 并退出循环
-                        self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad)
+                    else:  # 如果没有指定 end_time, 则取当前时间, 并退出循环
+                        self.plant_a_tree(plant_mode, tree_type, plant_time, note, i, _boost_by_ad, datetime.now())
                         break
                 i += 1
 
@@ -743,7 +743,7 @@ class Forest:
 
     # %% 种植一棵树
     def plant_a_tree(self, _plant_mode: str, _tree_type: int, _plant_time: int, _note: str, _number: int,
-                     _boost_by_ad: bool, _end_time: datetime = datetime.now(),
+                     _boost_by_ad: bool, _end_time: datetime,
                      _room_id: int = -1) -> bool:
         """
         :param _plant_mode: 种植模式(str) 接受 "countup"（正计时） 和 "countdown"（倒计时）
