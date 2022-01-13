@@ -247,6 +247,68 @@ class Forest:
         except Exception:
             return {}
 
+    # %% 获取成就列表
+    def get_achievements_info(self) -> bool:
+        """
+        :return: 若获取成功则返回 True
+        """
+        file_name = "achievements.json"
+
+        def run():
+            Avalon.info(f"正在获取 成就列表 ({file_name})", front="\n")
+            return get_from_server()
+
+        def get_from_server():
+            url = f"{self.api_url}/api/v1/achievements"
+            data = {
+                "today": (datetime.utcnow() - timedelta(hours=1)).isoformat()[:-3] + "Z",
+                "achievement_system_2020": False,
+                "seekrua": f"android_cn-{self.app_version}",
+                "seekruid": self.user.uid
+            }
+            r = self.req.my_requests("get", url, data, {})
+            if r is None:
+                Avalon.error(f"从服务器端获取 成就列表 ({file_name}) 失败! 请检查网络连接")
+                return False
+            if r.status_code == 200:
+                self.plants = json.loads(r.text)
+                Avalon.info(f"从服务器端获取 成就列表 ({file_name}) 成功")
+                with open(f"_user_files/{file_name}", "w", encoding="utf-8") as f:
+                    f.write(r.text)
+                return True
+            else:
+                Avalon.error(f"从服务端获取 成就列表 {file_name} 可能失败")
+                return False
+
+        try:
+            return run()
+        except KeyboardInterrupt:
+            Avalon.warning("捕获到 KeyboardInterrupt, 退出当前任务")
+            return False
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
+            return False
+
+    # %% 领取成就
+    def claim_achievement(self, _achievement_id: int) -> bool:
+        url = f"{self.api_url}/api/v1/achievements/{_achievement_id}/claim_reward?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
+        r = self.req.my_requests("put", url)
+        if r is None:
+            Avalon.error(f"领取成就 id:{_achievement_id} 失败! 空 response")
+            return False
+        if r.status_code in (200, 201):
+            Avalon.info(f"领取成就 id:{_achievement_id} 成功")
+            return True
+        elif r.status_code == 204:
+            Avalon.info(f"成就 id:{_achievement_id} 已经领取过啦")
+            return True
+        elif r.status_code == 423:
+            Avalon.warning(f"成就 id:{_achievement_id} 尚未达到领取条件")
+            return False
+        else:
+            Avalon.warning(f"领取成就 id:{_achievement_id} 未知 状态码: {r.status_code}")
+            return False
+
     # %% 模拟观看广告操作
     def simulate_watch_ad(self):
         """
@@ -871,6 +933,8 @@ if __name__ == '__main__':
           5. 创建房间 (一起种功能)
           6. 自动植树
           7. 手动植树
+          8. 获取成就列表 (achievements.json)
+          9. 领取指定成就
         
         =================================================
         """
@@ -907,6 +971,10 @@ if __name__ == '__main__':
                          Avalon.ask("是否缩短植树请求间隔时间"), Avalon.gets("输入自定义的每棵树植树时长(单位为分钟 可选): ", default=-1))
         elif _n == 7:
             F.manually_plant(Avalon.ask("是否启用双倍金币"))
+        elif _n == 8:
+            F.get_achievements_info()
+        elif _n == 9:
+            F.claim_achievement(int(Avalon.gets("输入 achievement_id: ")))
         else:
             Avalon.warning("选项不存在!")
             time.sleep(2)
