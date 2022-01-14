@@ -670,25 +670,30 @@ class Forest:
             return False
 
     # %% 自动植树刷金币
-    def auto_plant(self, _total_n: int, _boost_by_ad: bool, _by_time_frame: bool, _short_sleep_time: bool = False,
+    def auto_plant(self, _boost_by_ad: bool, _mode: int, _total_n: int, _short_sleep_time: bool = False,
                    _customize_plant_time: int = -1):
         """
-        :param _total_n: 植树的总数, 仅在 _by_time_frame 为 False 时有效
         :param _boost_by_ad: 是否启用 模拟观看广告获取双倍金币
-        :param _by_time_frame: 是否启用 按照指定时间区间植树
-        :param _short_sleep_time: 是否启用 缩短植树请求间的 time_sleep 延迟 （仅针对 mode_1 有效）
-        :param _customize_plant_time: 是否启用 自定义每棵树的种植时间 单位为分钟
+        :param _mode: 自动植树模式选择 可选值 1-3, 分别对应 by_time_frame server_regular server_rank
+        :param _total_n: 植树的总数 (若启用 by_time_frame 此项无效)
+        :param _short_sleep_time: 是否启用 缩短植树请求间的 time_sleep 延迟 (仅对 by_time_frame 有效)
+        :param _customize_plant_time: 是否启用 自定义每棵树的种植时间 单位为分钟 (对 server_rank 无效)
         :return: 无返回值
         """
 
         def run():
             Avalon.info("========== 当前任务: 自动植树 ==========\n", front="\n\n")
-            if _by_time_frame:
-                mode_1()
+            if _mode == 1:
+                mode_by_time_frame()
+            elif _mode == 2:
+                mode_server_regular()
+            elif _mode == 3:
+                mode_server_rank()
             else:
-                mode_2()
+                Avalon.warning(f"输入的模式: {_mode} 无效!")
+                return None
 
-        def mode_1():
+        def mode_by_time_frame():
             """
             按照指定时间区间植树
             """
@@ -715,7 +720,11 @@ class Forest:
                 time.sleep(sleep_time)
                 i += 1
 
-        def mode_2():
+        def mode_server_regular():
+            """
+            服务器挂机循环植树模式
+            """
+            # 此模式下 plant_time 在循环之前指定 实际上每棵树的种植时长都是固定
             if _customize_plant_time == -1 or _customize_plant_time == "":
                 plant_time = random.choice(list(range(30, 180, 5)))
             else:
@@ -727,6 +736,21 @@ class Forest:
                 Avalon.info(f"将在 {plant_time} min后种植第 {i} 棵树")
                 self.sleep(plant_time * 60, False)
                 time.sleep(1)
+                self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad, datetime.now())
+                i += 1
+
+        def mode_server_rank():
+            """
+            mode_server_regular 修改版, 随机短植树时间, 用于刷排行榜
+            """
+            i = 1
+            while i <= int(_total_n):
+                note = random.choice(["学习S", "娱乐S", "工作S", "锻炼S", "休息S", "其他S"])
+                tree_type = random.randint(1, 83)
+                plant_time = random.choice(list(range(10, 25, 5)))
+                Avalon.debug_info(f"将在 {plant_time} min后种植第 {i} 棵树")
+                self.sleep(plant_time * 60, False)
+                time.sleep(0.5)
                 self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad, datetime.now())
                 i += 1
 
@@ -966,9 +990,10 @@ if __name__ == '__main__':
         elif _n == 5:
             F.create_room(Avalon.ask("是否启用双倍金币"))
         elif _n == 6:
-            F.auto_plant(Avalon.gets("自动种植总数 (可选 仅在\'不按时间区间\'时有效): ", default=10), Avalon.ask("是否启用双倍金币"),
-                         Avalon.ask("是否按照时间区间"),
-                         Avalon.ask("是否缩短植树请求间隔时间"), Avalon.gets("输入自定义的每棵树植树时长(单位为分钟 可选): ", default=-1))
+            F.auto_plant(Avalon.ask("是否启用双倍金币"), int(Avalon.gets("选择自动植树模式 (1.按时间段 2.挂机 3.挂机刷榜):", default=-1)),
+                         Avalon.gets("自动种植总数 (可选 默认1000 仅在\'非 mode1\'时有效): ", default=1000),
+                         Avalon.ask("是否缩短植树请求间隔时间 (可选 仅在\'mode1\'时有效)", default=True),
+                         Avalon.gets("输入自定义的每棵树植树时长(单位为分钟 可选 仅在\'非 mode3\'时有效): ", default=-1))
         elif _n == 7:
             F.manually_plant(Avalon.ask("是否启用双倍金币"))
         elif _n == 8:

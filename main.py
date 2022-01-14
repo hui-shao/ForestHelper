@@ -109,9 +109,12 @@ def run():
     if config["remove_plants_by_rewarded_ad"]["enable"]:
         F.remove_plants_by_rewarded_ad()
     if config["auto_plant"]["enable"]:
-        F.auto_plant(_total_n=config["auto_plant"]["number"],
-                     _boost_by_ad=config["boost_plant_by_rewarded_ad"]["enable"],
-                     _by_time_frame=config["auto_plant"]["by_time_frame"])
+        F.auto_plant(_boost_by_ad=config["boost_plant_by_rewarded_ad"]["enable"],
+                     _mode=config["auto_plant"]["mode"],
+                     _total_n=config["auto_plant"]["number"],
+                     _short_sleep_time=config["auto_plant"]["short_sleep_time"],
+                     _customize_plant_time=config["auto_plant"]["customize_plant_time"]
+                     )
     if config["manually_plant"]["enable"]:
         F.manually_plant(_boost_by_ad=config["boost_plant_by_rewarded_ad"]["enable"])
     if config["create_room"]["enable"]:

@@ -229,3 +229,4 @@ cython_debug/
 #Custmosized
 _user_files
 /config.toml
+utils/test*.py

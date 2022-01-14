@@ -23,8 +23,10 @@ enable = false
 # 自动植树(刷金币)
 [auto_plant]
 enable = false
-by_time_frame = false
-number = 100  # 仅在 by_time_frame 关闭时有效
+mode = 1  # 自动植树模式 可选 1-3 (1.按时间段 2.挂机模式 3.挂机刷榜)
+number = 1000  # 自动种植总数 仅在'非 mode1'时有效
+short_sleep_time = false  # 是否缩短植树请求间隔时间 仅在'启用 mode1'时有效
+customize_plant_time = -1  # 自定义的每棵树植树时长 单位为分钟, 仅在'非 mode3'时有效, -1 表示随机
 
 # 手动植树
 [manually_plant]
