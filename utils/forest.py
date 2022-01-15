@@ -20,6 +20,7 @@ except ModuleNotFoundError:
 class Forest:
     api_url_tuple = (
         "https://c88fef96.forestapp.cc", "https://forest.dc.upwardsware.com", "https://forest-china.upwardsware.com")
+    receipt_url_tuple = ("https://receipt-system.seekrtech.com", "https://receipt-china.upwardsware.com")
     app_version = "4.50.0"
     plants = []
     coin_tree_types = {}
@@ -29,7 +30,9 @@ class Forest:
         self.user = _user
         self.req = HttpReq(self.user.remember_token)
         self.api_url = self.api_url_tuple[1]
+        self.receipt_url = self.receipt_url_tuple[0]
         self.select_api_url()
+        self.select_receipt_url()
 
     # %% 设置 api_url
     def select_api_url(self, _i: int = -1):
@@ -45,6 +48,23 @@ class Forest:
                 self.select_api_url(1)  # 若用户 server 为 global, 默认启用 "加速链接"
         elif 0 <= _i <= 2:
             self.api_url = self.api_url_tuple[_i]
+        else:
+            pass
+
+    # %% 设置 receipt_url
+    def select_receipt_url(self, _i: int = -1):
+        """
+        用于设置 self.receipt_url 不传入 _i 参数时, 则根据 self.user.server 进行选择
+        :param _i: 可选值为 0 or 1 分别对应 默认地址(全球服务器) | 中国大陆服务器地址
+        :return: None
+        """
+        if _i == -1:
+            if self.user.server == "china":
+                self.select_receipt_url(1)
+            elif self.user.server == "global":
+                self.select_receipt_url(0)
+        elif 0 <= _i <= 1:
+            self.receipt_url = self.receipt_url_tuple[_i]
         else:
             pass
 
@@ -70,7 +90,8 @@ class Forest:
                 Avalon.error("登录失败! 请检查账号及密码 响应代码: 481")
                 return {}
             else:
-                self.api_url = self.api_url_tuple[2]  # 收到 481 返回码, 可能是由于中国区用户在全球服务器登陆造成 (目前看来是这样 2021.12.03)
+                self.select_api_url(2)  # 收到 481 返回码, 可能是由于中国区用户在全球服务器登陆造成 (目前看来是这样 2021.12.03)
+                self.select_receipt_url(1)
                 self.login_trial_n += 1
                 return self.login()
         elif r.status_code == 403:
@@ -78,7 +99,8 @@ class Forest:
                 Avalon.error("登录失败! 请检查账号及密码 响应代码: 403 Forbidden")
                 return {}
             else:
-                self.api_url = self.api_url_tuple[2]  # 在 auto 模式下, 若第一次登录失败, 切换为中国服务器 api 再次尝试登录
+                self.select_api_url(2)  # 在 auto 模式下, 若第一次登录失败, 切换为中国服务器 api 再次尝试登录
+                self.select_receipt_url(1)
                 self.login_trial_n += 1
                 return self.login()
         elif r.status_code != 200:
@@ -323,14 +345,14 @@ class Forest:
             ad_token = get_ad_token(ad_session_token)
             if ad_token is False:
                 return False
-            time.sleep(1)
+            time.sleep(0.75)
             return simulate_watch(ad_token, ad_session_token)
 
         def get_ad_session_token():
             """
             获取 ad_session_token 以便接下来获取 ad_token
             """
-            r = self.req.my_requests("post", "https://receipt-system.seekrtech.com/projects/1/ad_sessions", {}, {})
+            r = self.req.my_requests("post", f"{self.receipt_url}/projects/1/ad_sessions", {}, {})
             if r is None:
                 Avalon.error("获取 ad_session_token 失败! 请检查网络连接")
                 return False
@@ -344,7 +366,7 @@ class Forest:
         def get_ad_token(_ad_session_token):
             data = {"ad_session_token": f"{_ad_session_token}"}
             r = self.req.my_requests("post",
-                                     f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
+                                     f"{self.receipt_url}/sv_rewarded_ad_views?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
                                      data, {})
             if r is None:
                 Avalon.error("获取 ad_token 失败! 请检查网络连接")
@@ -358,7 +380,7 @@ class Forest:
 
         def simulate_watch(_ad_token, _ad_session_token):
             res_1 = self.req.my_requests("put",
-                                         f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/watched?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
+                                         f"{self.receipt_url}/sv_rewarded_ad_views/{_ad_token}/watched?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
                                          {"ad_session_token": f"{_ad_session_token}"})
             if res_1 is None:
                 Avalon.error("模拟观看广告失败! 请检查网络连接 位置: 1 -> watched")
@@ -368,7 +390,7 @@ class Forest:
                 return False
             time.sleep(0.3)
             res_2 = self.req.my_requests("put",
-                                         f"https://receipt-system.seekrtech.com/sv_rewarded_ad_views/{_ad_token}/claim?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
+                                         f"{self.receipt_url}/sv_rewarded_ad_views/{_ad_token}/claim?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}",
                                          {"ad_session_token": f"{_ad_session_token}", "user_id": self.user.uid})
             if res_2 is None:
                 Avalon.error("模拟观看广告失败! 请检查网络连接 位置: 2 -> claim")
@@ -438,11 +460,14 @@ class Forest:
             if r.status_code == 200:
                 Avalon.info("删除种植记录成功")
                 return True
-            elif r.status_code == 422:
-                Avalon.error("原因: 422 Cannot find the product with given id")
+            elif r.status_code == 402:
+                Avalon.error("删除种植记录失败 原因: 402 Payment Required.")
                 return False
             elif r.status_code == 403:
-                Avalon.error("原因: 403 Forbidden. 请检查cookie")
+                Avalon.error("删除种植记录失败 原因: 403 Forbidden. 请检查cookie")
+                return False
+            elif r.status_code == 422:
+                Avalon.error("删除种植记录失败 原因: 422 Cannot find the product with given id")
                 return False
             else:
                 Avalon.error(f"删除种植记录失败! 状态码: {r.status_code}")
