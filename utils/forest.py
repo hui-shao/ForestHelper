@@ -22,7 +22,8 @@ class Forest:
         "https://c88fef96.forestapp.cc", "https://forest.dc.upwardsware.com", "https://forest-china.upwardsware.com")
     receipt_url_tuple = ("https://receipt-system.seekrtech.com", "https://receipt-china.upwardsware.com")
     app_version = "4.50.0"
-    plants = []
+    plants = {}
+    achievements = {}
     coin_tree_types = {}
 
     def __init__(self, _user):
@@ -293,7 +294,7 @@ class Forest:
                 Avalon.error(f"从服务器端获取 成就列表 ({file_name}) 失败! 请检查网络连接")
                 return False
             if r.status_code == 200:
-                self.plants = json.loads(r.text)
+                self.achievements = json.loads(r.text)
                 Avalon.info(f"从服务器端获取 成就列表 ({file_name}) 成功")
                 with open(f"_user_files/{file_name}", "w", encoding="utf-8") as f:
                     f.write(r.text)
@@ -311,8 +312,38 @@ class Forest:
             Avalon.error(traceback.format_exc(3))
             return False
 
+    # %% 查询单个成就状态
+    def get_single_achievement_status(self, _id: int) -> dict:
+        """
+        查询单个成就状态, 领取成就前可能需要执行此函数让服务器进行刷新
+        :param _id: 目标 achievement id
+        :return: (json)
+        """
+        def run():
+            url = f"{self.api_url}/api/v1/achievements/{_id}"
+            data = {
+                "today": (datetime.utcnow() - timedelta(hours=1)).isoformat()[:-3] + "Z",
+                "seekrua": f"android_cn-{self.app_version}",
+                "seekruid": self.user.uid
+            }
+            r = self.req.my_requests("get", url, data, {})
+            if r is None:
+                return {}
+            if r.status_code == 200 and r.text:
+                return json.loads(r.text)
+            else:
+                return {}
+        try:
+            return run()
+        except KeyboardInterrupt:
+            return {}
+        except Exception:
+            Avalon.error(traceback.format_exc(3))
+            return {}
+
     # %% 领取成就
     def claim_achievement(self, _achievement_id: int) -> bool:
+        self.get_single_achievement_status(_achievement_id)  # 可能要向服务器查询以刷新
         url = f"{self.api_url}/api/v1/achievements/{_achievement_id}/claim_reward?seekrua=android_cn-{self.app_version}&seekruid={self.user.uid}"
         r = self.req.my_requests("put", url)
         if r is None:
