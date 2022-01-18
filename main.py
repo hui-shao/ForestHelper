@@ -23,6 +23,15 @@ def makedir():
         pass
 
 
+# %% 检查 config.toml 格式是否需要更新
+def is_config_need_update():
+    if os.path.exists("config_need_update"):  # config_need_update 是手动放置的标记文件
+        Avalon.error("\n    config.toml 需要重新配置\n    配置格式请参照 config.toml.example\n    程序退出")
+        exit(0)
+    else:
+        pass
+
+
 # %% 读取配置文件
 def read_config():
     Avalon.info("读取配置文件中……", front="\n")
@@ -133,6 +142,7 @@ if __name__ == '__main__':
         uid = 0
         remember_token = ""
         server = "auto"
+        is_config_need_update()
         makedir()
         if read_config():
             user = User(username, passwd, uid, remember_token, server)
