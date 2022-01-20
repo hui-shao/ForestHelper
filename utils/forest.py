@@ -947,6 +947,7 @@ class Forest:
         else:
             if res is None:
                 Avalon.error(f"第 {_number} 棵植树失败! 请检查网络连接")
+                return False
             elif res.status_code == 403:
                 Avalon.error(f"第 {_number} 棵植树失败! 请检查 Cookies 响应代码: 403 Forbidden")
                 return False
@@ -1046,10 +1047,10 @@ if __name__ == '__main__':
         elif _n == 5:
             F.create_room(Avalon.ask("是否启用双倍金币"))
         elif _n == 6:
-            F.auto_plant(Avalon.ask("是否启用双倍金币"), int(Avalon.gets("选择自动植树模式 (1.按时间段 2.挂机 3.挂机刷榜):", default=-1)),
-                         Avalon.gets("自动种植总数 (可选 默认1000 仅在\'非 mode1\'时有效): ", default=1000),
-                         Avalon.ask("是否缩短植树请求间隔时间 (可选 仅在\'mode1\'时有效)", default=True),
-                         Avalon.gets("输入自定义的每棵树植树时长(单位为分钟 可选 仅在\'非 mode3\'时有效): ", default=-1))
+            F.auto_plant(Avalon.ask("是否启用双倍金币 (N)"), int(Avalon.gets("选择自动植树模式 (1.按时间段 2.挂机 3.挂机刷榜) (1):", default=1)),
+                         Avalon.gets("自动种植总数 (可选 仅在\'非 mode1\'时有效) (100): ", default=100),
+                         Avalon.ask("是否缩短植树请求间隔时间 (可选 仅在\'mode1\'时有效) (y)", default=True),
+                         Avalon.gets("输入自定义的每棵树植树时长(单位为分钟 可选 仅在\'非 mode3\'时有效) (180): ", default=180))
         elif _n == 7:
             F.manually_plant(Avalon.ask("是否启用双倍金币"))
         elif _n == 8:
