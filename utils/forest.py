@@ -319,6 +319,7 @@ class Forest:
         :param _id: 目标 achievement id
         :return: (json)
         """
+
         def run():
             url = f"{self.api_url}/api/v1/achievements/{_id}"
             data = {
@@ -333,6 +334,7 @@ class Forest:
                 return json.loads(r.text)
             else:
                 return {}
+
         try:
             return run()
         except KeyboardInterrupt:
@@ -766,12 +768,14 @@ class Forest:
                 note = f"{tree_type}"
                 end_time = endtime_list[i - 1]
                 print("\n")
-                self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad, end_time)
-                if _short_sleep_time:
-                    sleep_time = 0.3
-                else:
-                    sleep_time = random.randint(2, 10) + random.random()
-                    sleep_time = round(sleep_time, 2)
+                if self.plant_a_tree("countdown", tree_type, plant_time, note, i, _boost_by_ad, end_time):
+                    if _short_sleep_time:
+                        sleep_time = 0.3
+                    else:
+                        sleep_time = random.randint(2, 10) + random.random()
+                        sleep_time = round(sleep_time, 2)
+                else:  # 单棵植树出错
+                    sleep_time = 3  # 如果是人为 Ctrl+C 引发, 设置 3s 也是为再次 Ctrl+C 留足时间
                 Avalon.info(f"Wait {sleep_time} seconds")
                 time.sleep(sleep_time)
                 i += 1
