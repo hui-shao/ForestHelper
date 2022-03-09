@@ -21,7 +21,7 @@ class Forest:
     api_url_tuple = (
         "https://c88fef96.forestapp.cc", "https://forest.dc.upwardsware.com", "https://forest-china.upwardsware.com")
     receipt_url_tuple = ("https://receipt-system.seekrtech.com", "https://receipt-china.upwardsware.com")
-    app_version = "4.52.0"
+    app_version = "4.53.0"
     plants = {}
     achievements = {}
     coin_tree_types = {}

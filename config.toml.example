@@ -1,7 +1,7 @@
 # 常规设置
 [common]
 enable_network_accelerator = true  # 是否启用针对中国大陆的加速链接(仅在 user.server 不为 china 时有效)
-app_version = "4.52.0"  # 指定 url 参数中提交的 app 版本号, 一般保持默认即可
+app_version = "4.53.0"  # 指定 url 参数中提交的 app 版本号, 一般保持默认即可
 
 # 用户设置
 # 请在下方填写您的账号凭据
