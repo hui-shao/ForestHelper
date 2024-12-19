@@ -18,10 +18,9 @@ except ModuleNotFoundError:
 
 
 class Forest:
-    api_url_tuple = (
-        "https://c88fef96.forestapp.cc", "https://forest.dc.upwardsware.com", "https://forest-china.upwardsware.com")
+    api_url_tuple = ("https://c88fef96.forestapp.cc", "https://forest-china.upwardsware.com")
     receipt_url_tuple = ("https://receipt-system.seekrtech.com", "https://receipt-china.upwardsware.com")
-    app_version = "4.53.0"
+    app_version = "4.81.1"
     plants = {}
     achievements = {}
     coin_tree_types = {}
@@ -30,7 +29,7 @@ class Forest:
         self.login_trial_n = 0
         self.user = _user
         self.req = HttpReq(self.user.remember_token)
-        self.api_url = self.api_url_tuple[1]
+        self.api_url = self.api_url_tuple[0]  # 默认选取全球服务器
         self.receipt_url = self.receipt_url_tuple[0]
         self.select_api_url()
         self.select_receipt_url()
@@ -39,15 +38,15 @@ class Forest:
     def select_api_url(self, _i: int = -1):
         """
         用于设置 self.api_url 不传入 _i 参数时, 则根据 self.user.server 进行选择
-        :param _i: 可选值为 0 or 1 or 2  分别对应 默认地址(全球服务器) | 针对大陆的加速地址(全球服务器) | 中国大陆服务器地址
+        :param _i: 可选值为 0 or 1  分别对应 默认地址(全球服务器) | 中国大陆服务器地址
         :return: None
         """
         if _i == -1:
             if self.user.server == "china":
-                self.select_api_url(2)
+                self.select_api_url(1)
             elif self.user.server == "global":
-                self.select_api_url(1)  # 若用户 server 为 global, 默认启用 "加速链接"
-        elif 0 <= _i <= 2:
+                self.select_api_url(0)  # 若用户 server 为 global, 默认启用 "加速链接"
+        elif 0 <= _i <= 1:
             self.api_url = self.api_url_tuple[_i]
         else:
             pass
@@ -91,7 +90,7 @@ class Forest:
                 Avalon.error("登录失败! 请检查账号及密码 响应代码: 481")
                 return {}
             else:
-                self.select_api_url(2)  # 收到 481 返回码, 可能是由于中国区用户在全球服务器登陆造成 (目前看来是这样 2021.12.03)
+                self.select_api_url(1)  # 收到 481 返回码, 可能是由于中国区用户在全球服务器登陆造成 (目前看来是这样 2021.12.03)
                 self.select_receipt_url(1)
                 self.login_trial_n += 1
                 return self.login()
@@ -100,7 +99,7 @@ class Forest:
                 Avalon.error("登录失败! 请检查账号及密码 响应代码: 403 Forbidden")
                 return {}
             else:
-                self.select_api_url(2)  # 在 auto 模式下, 若第一次登录失败, 切换为中国服务器 api 再次尝试登录
+                self.select_api_url(1)  # 在 auto 模式下, 若第一次登录失败, 切换为中国服务器 api 再次尝试登录
                 self.select_receipt_url(1)
                 self.login_trial_n += 1
                 return self.login()
